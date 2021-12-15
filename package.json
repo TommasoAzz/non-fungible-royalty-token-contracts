@@ -1,0 +1,24 @@
+{
+  "name": "non-fungible-royalty-token",
+  "version": "1.0.0",
+  "description": "University project for implementing the ERC1190",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TommasoAzz/non-fungible-royalty-token.git"
+  },
+  "author": "Tommaso Azzalin, Domingo Ranieri",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TommasoAzz/non-fungible-royalty-token/issues"
+  },
+  "homepage": "https://github.com/TommasoAzz/non-fungible-royalty-token#readme"
+}
