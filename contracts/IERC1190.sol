@@ -30,6 +30,20 @@ interface IERC1190 is IERC165 {
         uint256 indexed tokenId
     );
 
+    /**
+     * @dev Returns the number of tokens in ``owner``'s account.
+     */
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    /**
+     * @dev Returns the owner of the `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function ownerOf(uint256 tokenId) external view returns (address owner);
+
     // Function to initialize token and set the owner(s) and the royalty rates. Returns the unique token ID for the digital asset.
     function approve(
         address[] owners,
