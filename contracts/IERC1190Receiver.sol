@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 
-interface IERC1190Metadata {
+/**
+ * @title ERC721 token receiver interface
+ * @dev Interface for any contract that wants to support safeTransfers
+ * from ERC721 asset contracts.
+ */
+interface IERC1190Receiver {
     /**
      * @dev Whenever an {IERC1190} `tokenId` token is transferred to this contract via {IERC1190-safeTransferFrom}
      * by `operator` from `from`, this function is called.

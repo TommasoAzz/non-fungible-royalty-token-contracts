@@ -17,14 +17,12 @@ interface IERC1190 is IERC165 {
     );
 
     event OwnershipLicenseTransferred(
-        address[] indexed creativeLicenseHolders,
         address[] indexed ownershipLicenseHolders,
         address[] indexed newOwners,
         uint256 indexed tokenId
     );
 
     event AssetRented(
-        address[] indexed creativeLicenseHolders,
         address[] indexed ownershipLicenseHolders,
         address[] indexed renters,
         uint256 indexed tokenId
@@ -46,31 +44,31 @@ interface IERC1190 is IERC165 {
 
     // Function to initialize token and set the owner(s) and the royalty rates. Returns the unique token ID for the digital asset.
     function approve(
-        address[] owners,
+        address[] memory owners,
         uint256 royaltyForOwnershipTransfer,
         uint256 royaltyForRental
-    ) returns (uint256);
+    ) external returns (uint256);
 
     // Function to transfer creative license of token
     function transferCreativeLicense(
-        address[] creativeLicenseHolders,
-        address[] newOwners,
+        address[] memory creativeLicenseHolders,
+        address[] memory newOwners,
         uint256 tokenId
-    );
+    ) external;
 
     // Function to transfer ownership license of token
     function transferOwnershipLicense(
-        address[] creativeLicenseHolders,
-        address[] ownershipLicenseHolders,
-        address[] newOwners,
+        address[] memory creativeLicenseHolders,
+        address[] memory ownershipLicenseHolders,
+        address[] memory newOwners,
         uint256 tokenId
-    );
+    ) external;
 
     // Function to rent asset
     function rentAsset(
-        address[] creativeLicenseHolders,
-        address[] ownershipLicenseHolders,
-        address[] renters,
+        address[] memory creativeLicenseHolders,
+        address[] memory ownershipLicenseHolders,
+        address[] memory renters,
         uint256 tokenId
-    );
+    ) external;
 }
