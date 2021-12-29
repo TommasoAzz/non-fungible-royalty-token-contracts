@@ -10,9 +10,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /**
- * @dev Implementation of IERC1190.sol, including
- * the Metadata extension, but not including the Enumerable extension, which is available separately as
- * {ERC1190Enumerable}.
+ * @dev Implementation of IERC1190.sol, including the Metadata extension.
  */
 
 contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
@@ -32,10 +30,16 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     mapping(uint256 => address) private _creativeOwners;
 
     // Mapping from token ID to renters address
-    mapping(uint256 => address) private _renters;
+    mapping(uint256 => mapping(address => uint256)) private _renters;
 
     // Mapping owner address to token count
-    mapping(address => uint256) private _balances;
+    mapping(address => uint256) private _ownerBalances;
+
+    // Mapping creative owner address to token count
+    mapping(address => uint256) private _creativeOwnerBalances;
+
+    // Mapping renter address to token count
+    mapping(address => uint256) private _renterBalances;
 
     // Mapping from token ID to approved address
     mapping(uint256 => address) private _tokenApprovals;
@@ -68,9 +72,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     }
 
     /**
-     * @dev See {IERC1190-balanceOf}.
+     * @dev See {IERC1190-balanceOfOwner}.
      */
-    function balanceOf(address owner)
+    function balanceOfOwner(address owner)
         public
         view
         virtual
@@ -79,9 +83,43 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     {
         require(
             owner != address(0),
-            "ERC1190: balance query for the zero address"
+            "ERC1190: owner balance query for the zero address"
         );
-        return _balances[owner];
+        return _ownerBalances[owner];
+    }
+
+    /**
+     * @dev See {IERC1190-balanceOfCreativeOwner}.
+     */
+    function balanceOfCreativeOwner(address creativeOwner)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        require(
+            creativeOwner != address(0),
+            "ERC1190: creative owner balance query for the zero address"
+        );
+        return _creativeOwnerBalances[creativeOwner];
+    }
+
+    /**
+     * @dev See {IERC1190-balanceOfRenter}.
+     */
+    function balanceOfRenter(address renter)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        require(
+            renter != address(0),
+            "ERC1190: renter balance query for the zero address"
+        );
+        return _renterBalances[renter];
     }
 
     /**
@@ -103,51 +141,34 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     }
 
     /**
-     * @dev See {IERC1190-creatorOf}.
+     * @dev See {IERC1190-creativeOwnerOf}.
      */
-    function creatorOf(uint256 tokenId)
+    function creativeOwnerOf(uint256 tokenId)
         public
         view
         virtual
         override
         returns (address)
     {
-        address creator = _creativeOwners[tokenId];
+        address creativeOwner = _creativeOwners[tokenId];
         require(
-            creator != address(0),
-            "ERC1190: creator query for nonexistent token"
+            creativeOwner != address(0),
+            "ERC1190: creative owner query for nonexistent token"
         );
-        return creator;
+        return creativeOwner;
     }
-
-    /**
-     * @dev See {IERC1190Metadata-name}.pragma solidity ^0.8.0;
-
-import "./IERC1190.sol";
-import "./IERC1190Receiver.sol";
-import "./extensions/IERC1190Metadata.sol";
-import "../../utils/Address.sol";
-import "../../utils/Context.sol";
-import "../../utils/Strings.sol";
-import "../../utils/introspection/ERC165.sol";
-
-/**
- * @dev Implementation of IERC1190.sol, including
- * the Metadata extension, but not including the Enumerable extension, which is available separately as
- * {ERC1190Enumerable}.
- */
 
     /**
      * @dev See {IERC1190Metadata-name}.
      */
-    function name() public view virtual override returns (string memory) {
+    function name() external view virtual override returns (string memory) {
         return _name;
     }
 
     /**
      * @dev See {IERC1190Metadata-symbol}.
      */
-    function symbol() public view virtual override returns (string memory) {
+    function symbol() external view virtual override returns (string memory) {
         return _symbol;
     }
 
@@ -155,7 +176,7 @@ import "../../utils/introspection/ERC165.sol";
      * @dev See {IERC1190Metadata-tokenURI}.
      */
     function tokenURI(uint256 tokenId)
-        public
+        external
         view
         virtual
         override
@@ -187,18 +208,24 @@ import "../../utils/introspection/ERC165.sol";
      */
     function approve(address to, uint256 tokenId) public virtual override {
         address owner = ERC1190.ownerOf(tokenId);
-        address cretaor = ERC1190.creatorOf(tokenId);
         require(to != owner, "ERC1190: approval to current owner");
-        require(to != cretor, "ERC1190: approval to current cretor");
 
         require(
-            _msgSender() == owner ||
-                _msgSender() == cretor ||
-                isApprovedForAll(owner, _msgSender()),
-            "ERC1190: approve caller is not owner nor crator nor approved for all"
+            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            "ERC1190: approve caller is not owner nor approved for all"
         );
 
         _approve(to, tokenId);
+    }
+
+    /**
+     * @dev Approve `to` to operate on `tokenId`
+     *
+     * Emits a {Approval} event.
+     */
+    function _approve(address to, uint256 tokenId) internal virtual {
+        _tokenApprovals[tokenId] = to;
+        emit Approval(ERC1190.ownerOf(tokenId), to, tokenId);
     }
 
     /**
@@ -231,6 +258,21 @@ import "../../utils/introspection/ERC165.sol";
     }
 
     /**
+     * @dev Approve `operator` to operate on all of `owner` tokens
+     *
+     * Emits a {ApprovalForAll} event.
+     */
+    function _setApprovalForAll(
+        address owner,
+        address operator,
+        bool approved
+    ) internal virtual {
+        require(owner != operator, "ERC1190: approve to caller");
+        _operatorApprovals[owner][operator] = approved;
+        emit ApprovalForAll(owner, operator, approved);
+    }
+
+    /**
      * @dev See {IERC1190-isApprovedForAll}.
      */
     function isApprovedForAll(address owner, address operator)
@@ -244,14 +286,13 @@ import "../../utils/introspection/ERC165.sol";
     }
 
     /**
-     * @dev See {IERC1190-transferFrom}.
+     * @dev See {IERC1190-transferOwnershipLicenseFrom}.
      */
-    function transferOwnershipLicenceFrom(
+    function transferOwnershipLicenseFrom(
         address from,
         address to,
         uint256 tokenId
     ) public virtual override {
-        //solhint-disable-next-line max-line-length
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC1190: transfer caller is not owner nor approved"
@@ -261,20 +302,20 @@ import "../../utils/introspection/ERC165.sol";
     }
 
     /**
-     * @dev See {IERC1190-safeTransferFrom}.
+     * @dev See {IERC1190-safeTransferOwnershipLicenseFrom}.
      */
-    function safeTransferOwnershipLicenceFrom(
+    function safeTransferOwnershipLicenseFrom(
         address from,
         address to,
         uint256 tokenId
     ) public virtual override {
-        safeTransferOwnershipLicenceFrom(from, to, tokenId, "");
+        safeTransferOwnershipLicenseFrom(from, to, tokenId, "");
     }
 
     /**
-     * @dev See {IERC1190-safeTransferFrom}.
+     * @dev See {IERC1190-safeTransferOwnershipLicenseFrom}.
      */
-    function safeTransferOwnershipLicenceFrom(
+    function safeTransferOwnershipLicenseFrom(
         address from,
         address to,
         uint256 tokenId,
@@ -284,28 +325,39 @@ import "../../utils/introspection/ERC165.sol";
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC1190: transfer caller is not owner nor approved"
         );
-        _safeTransferOwnershipLicence(from, to, tokenId, _data);
+        _safeTransferOwnershipLicense(from, to, tokenId, _data);
     }
 
     /**
-     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
-     * are aware of the ERC1190 protocol to prevent tokens from being forever locked.
-     *
-     * `_data` is additional data, it has no specified format and it is sent in call to `to`.
-     *
-     * This internal function is equivalent to {safeTransferFrom}, and can be used to e.g.
-     * implement alternative mechanisms to perform token transfer, such as signature-based.
-     *
-     * Requirements:
-     *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must exist and be owned by `from`.
-     * - If `to` refers to a smart contract, it must implement {IERC1190Receiver-onERC1190Received}, which is called upon a safe transfer.
-     *
-     * Emits a {Transfer} event.
+     * @dev See {transferOwnershipLicenseFrom}.
      */
-    function _safeTransferOwnershipLicence(
+    function _transferOwnershipLicense(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual {
+        require(
+            ERC1190.ownerOf(tokenId) == from,
+            "ERC1190: transfer of token that is not own"
+        );
+        require(to != address(0), "ERC1190: transfer to the zero address");
+
+        _beforeTokenTransfer(from, to, tokenId);
+
+        // Clear approvals from the previous owner
+        _approve(address(0), tokenId);
+
+        _ownerBalances[from] -= 1;
+        _ownerBalances[to] += 1;
+        _owners[tokenId] = to;
+
+        emit TransferOwnershipLicense(from, to, tokenId);
+    }
+
+    /**
+     * @dev See {safeTransferOwnershipLicenseFrom}
+     */
+    function _safeTransferOwnershipLicense(
         address from,
         address to,
         uint256 tokenId,
@@ -313,7 +365,7 @@ import "../../utils/introspection/ERC165.sol";
     ) internal virtual {
         _transferOwnershipLicense(from, to, tokenId);
         require(
-            _checkOnERC1190Received(from, to, tokenId, _data),
+            _checkOnERC1190OwnershipLicenseReceived(from, to, tokenId, _data),
             "ERC1190: transfer to non ERC1190Receiver implementer"
         );
     }
@@ -321,35 +373,34 @@ import "../../utils/introspection/ERC165.sol";
     /**
      * @dev See {IERC1190-transferFrom}.
      */
-    function transferCreativeLicenceFrom(
+    function transferCreativeLicenseFrom(
         address from,
         address to,
         uint256 tokenId
     ) public virtual override {
-        //solhint-disable-next-line max-line-length
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC1190: transfer caller is not owner nor approved"
         );
 
-        _transferCreativeLicence(from, to, tokenId);
+        _transferCreativeLicense(from, to, tokenId);
     }
 
     /**
      * @dev See {IERC1190-safeTransferFrom}.
      */
-    function safeCreativeLicenceTransferFrom(
+    function safeTransferCreativeLicenseFrom(
         address from,
         address to,
         uint256 tokenId
     ) public virtual override {
-        safeCreativeLicenceTransferFrom(from, to, tokenId, "");
+        safeTransferCreativeLicenseFrom(from, to, tokenId, "");
     }
 
     /**
-     * @dev See {IERC1190-safeTransferFrom}.
+     * @dev See {IERC1190-safeCreativeLicenseTransferFrom}.
      */
-    function safeCreativeLicenceTransferFrom(
+    function safeTransferCreativeLicenseFrom(
         address from,
         address to,
         uint256 tokenId,
@@ -359,51 +410,7 @@ import "../../utils/introspection/ERC165.sol";
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC1190: transfer caller is not owner nor approved"
         );
-        _safeCreativeLicenceTransfer(from, to, tokenId, _data);
-    }
-
-    /**
-     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
-     * are aware of the ERC1190 protocol to prevent tokens from being forever locked.
-     *
-     * `_data` is additional data, it has no specified format and it is sent in call to `to`.
-     *
-     * This internal function is equivalent to {safeTransferFrom}, and can be used to e.g.
-     * implement alternative mechanisms to perform token transfer, such as signature-based.
-     *
-     * Requirements:
-     *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must exist and be owned by `from`.
-     * - If `to` refers to a smart contract, it must implement {IERC1190Receiver-onERC1190Received}, which is called upon a safe transfer.
-     *
-     * Emits a {Transfer} event.
-     */
-    function _safeCreativeLicenceTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory _data
-    ) internal virtual {
-        _transferCreativeLicence(from, to, tokenId);
-        require(
-            _checkOnERC1190Received(from, to, tokenId, _data),
-            "ERC1190: transfer to non ERC1190Receiver implementer"
-        );
-    }
-
-    /**
-     * @dev Returns whether `tokenId` exists.
-     *
-     * Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
-     *
-     * Tokens start existing when they are minted (`_mint`),
-     * and stop existing when they are burned (`_burn`).
-     */
-    function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return (_owners[tokenId] != address(0) ||
-            _creativeOwners[tokenId] != address(0));
+        _safeTransferCreativeLicense(from, to, tokenId, _data);
     }
 
     /**
@@ -424,11 +431,64 @@ import "../../utils/introspection/ERC165.sol";
             "ERC1190: operator query for nonexistent token"
         );
         address owner = ERC1190.ownerOf(tokenId);
-        address creator = ERC1190.creatorOf(tokenId);
         return (spender == owner ||
-            spender == creator ||
             getApproved(tokenId) == spender ||
             isApprovedForAll(owner, spender));
+    }
+
+    /**
+     * @dev See {transferCreativeLicenseFrom}.
+     */
+    function _transferCreativeLicense(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual {
+        require(
+            ERC1190.creativeOwnerOf(tokenId) == from,
+            "ERC1190: transfer of token that is not own"
+        );
+        require(to != address(0), "ERC1190: transfer to the zero address");
+
+        _beforeTokenTransfer(from, to, tokenId);
+
+        // Clear approvals from the previous owner
+        _approve(address(0), tokenId);
+
+        _creativeOwnerBalances[from] -= 1;
+        _creativeOwnerBalances[to] += 1;
+        _creativeOwners[tokenId] = to;
+
+        emit TransferCreativeLicense(from, to, tokenId);
+    }
+
+    /**
+     * @dev See {safeCreativeLicenseTransferFrom}.
+     */
+    function _safeTransferCreativeLicense(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) internal virtual {
+        _transferCreativeLicense(from, to, tokenId);
+        require(
+            _checkOnERC1190CreativeLicenseReceived(from, to, tokenId, _data),
+            "ERC1190: transfer to non ERC1190Receiver implementer"
+        );
+    }
+
+    /**
+     * @dev Returns whether `tokenId` exists.
+     *
+     * Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
+     *
+     * Tokens start existing when they are minted (`_mint`),
+     * and stop existing when they are burned (`_burn`).
+     */
+    function _exists(uint256 tokenId) internal view virtual returns (bool) {
+        return (_owners[tokenId] != address(0) ||
+            _creativeOwners[tokenId] != address(0));
     }
 
     /**
@@ -456,7 +516,11 @@ import "../../utils/introspection/ERC165.sol";
     ) internal virtual {
         _mint(to, tokenId);
         require(
-            _checkOnERC1190Received(address(0), to, tokenId, _data),
+            _checkOnERC1190OwnershipLicenseReceived(address(0), to, tokenId, _data),
+            "ERC1190: transfer to non ERC1190Receiver implementer"
+        );
+        require(
+            _checkOnERC1190CreativeLicenseReceived(address(0), to, tokenId, _data),
             "ERC1190: transfer to non ERC1190Receiver implementer"
         );
     }
@@ -479,168 +543,77 @@ import "../../utils/introspection/ERC165.sol";
 
         _beforeTokenTransfer(address(0), to, tokenId);
 
-        _balances[to] += 1;
+        _ownerBalances[to] += 1;
+        _creativeOwnerBalances[to] += 1;
         _owners[tokenId] = to;
         _creativeOwners[tokenId] = to;
 
-        emit TransferOwnershipLicence(address(0), to, tokenId);
-        emit TransferCreativeLicence(address(0), to, tokenId);
+        emit TransferOwnershipLicense(address(0), to, tokenId);
+        emit TransferCreativeLicense(address(0), to, tokenId);
     }
 
     /**
-     * @dev Destroys `tokenId`.
-     * The approval is cleared when the token is burned.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     *
-     * Emits a {Transfer} event.
+     * @dev See {IERC1190-rentAsset}.
      */
-    // function _burn(uint256 tokenId) internal virtual {
-    //     address owner = ERC1190.ownerOf(tokenId);
-    //     address creator = ERC1190.creatorOf(tokenId);
-
-    //     _beforeTokenTransfer(owner, address(0), tokenId);
-    //     _beforeTokenTransfer(creator, address(0), tokenId);
-
-    //     // Clear approvals
-    //     _approve(address(0), tokenId);
-
-    //     _balances[owner] -= 1;
-    //     _balances[creator] -= 1;
-    //     delete _creativeOwners[tokenId];
-    //     delete _owners[tokenId];
-
-    //     emit TransferOwnershipLicense(owner, address(0), tokenId);
-    //     emit TransferCreativeLicence(creator, address(0), tokenId);
-    // }
-
-    /**
-     * @dev Transfers `tokenId` from `from` to `to`.
-     *  As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
-     *
-     * Requirements:
-     *
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must be owned by `from`.
-     *
-     * Emits a {Transfer} event.
-     */
-    function _transferOwnershipLicense(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {
-        require(
-            ERC1190.ownerOf(tokenId) == from,
-            "ERC1190: transfer of token that is not own"
-        );
-        require(to != address(0), "ERC1190: transfer to the zero address");
-
-        _beforeTokenTransfer(from, to, tokenId);
-
-        // Clear approvals from the previous owner
-        _approve(address(0), tokenId);
-
-        _balances[from] -= 1;
-        _balances[to] += 1;
-        _owners[tokenId] = to;
-
-        emit TransferOwnershipLicense(from, to, tokenId);
-    }
-
-    function _transferCreativeLicense(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {
-        require(
-            ERC1190.creatorOf(tokenId) == from,
-            "ERC1190: transfer of token that is not own"
-        );
-        require(to != address(0), "ERC1190: transfer to the zero address");
-
-        _beforeTokenTransfer(from, to, tokenId);
-
-        // Clear approvals from the previous owner
-        _approve(address(0), tokenId);
-
-        _balances[from] -= 1;
-        _balances[to] += 1;
-        _creativeOwners[tokenId] = to;
-
-        emit TransferCreativeLicence(from, to, tokenId);
-    }
-
-    function _rentAssets(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {
-        require(
-            ERC1190.ownerOf(tokenId) == from,
-            "ERC1190: transfer of token that is not own"
-        );
-        require(to != address(0), "ERC1190: transfer to the zero address");
-
-        //_beforeTokenTransfer(from, to, tokenId);
-
-        // Clear approvals from the previous owner
-        //_approve(address(0), tokenId);
-
-        //_balances[from] -= 1;
-        //_balances[to] += 1;
-        _renters[tokenId] = to;
-
-        emit AssetRented(from, to, tokenId);
+    function rentAsset(
+        address renter,
+        uint256 tokenId,
+        uint256 rentExpirationDateInMillis
+    ) public virtual override {
+        _rentAsset(renter, tokenId, rentExpirationDateInMillis);
     }
 
     /**
-     * @dev See {IERC1190-getApproved}.
+     * @dev See {rentAsset}.
      */
-    function getRented(uint256 tokenId)
+    function _rentAsset(
+        address renter,
+        uint256 tokenId,
+        uint256 rentExpirationDateInMillis
+    ) internal virtual {
+        require(renter != address(0), "ERC1190: rent to the zero address");
+        require(_exists(tokenId), "ERC1190: token not exists");
+
+        _renters[tokenId][renter] = rentExpirationDateInMillis;
+        _renterBalances[renter] += 1;
+
+        emit AssetRented(renter, tokenId, rentExpirationDateInMillis);
+    }
+
+    /**
+     * @dev See {IERC1190-getRented}.
+     */
+    function getRented(uint256 tokenId, address renter)
         public
-        view
         virtual
         override
-        returns (address)
+        returns (uint256)
     {
         require(
             _exists(tokenId),
             "ERC1190: approved query for nonexistent token"
         );
+        require(
+            renter != address(0),
+            "ERC1190: renter is the 0 address."
+        );
+        require(
+            _renters[tokenId][renter] != 0,
+            "The renter has not rented the token tokenId."
+        );
 
-        return _renters[tokenId];
+        uint256 expiration = _renters[tokenId][renter];
+
+        if(expiration < block.timestamp) {
+            delete _renters[tokenId][renter];
+            _renterBalances[renter] -= 1;
+        }
+
+        return _renters[tokenId][renter];
     }
 
     /**
-     * @dev Approve `to` to operate on `tokenId`
-     *
-     * Emits a {Approval} event.
-     */
-    function _approve(address to, uint256 tokenId) internal virtual {
-        _tokenApprovals[tokenId] = to;
-        emit Approval(ERC1190.ownerOf(tokenId), to, tokenId);
-    }
-
-    /**
-     * @dev Approve `operator` to operate on all of `owner` tokens
-     *
-     * Emits a {ApprovalForAll} event.
-     */
-    function _setApprovalForAll(
-        address owner,
-        address operator,
-        bool approved
-    ) internal virtual {
-        require(owner != operator, "ERC1190: approve to caller");
-        _operatorApprovals[owner][operator] = approved;
-        emit ApprovalForAll(owner, operator, approved);
-    }
-
-    /**
-     * @dev Internal function to invoke {IERC1190Receiver-onERC1190Received} on a target address.
+     * @dev Internal function to invoke {IERC1190Receiver-onERC1190CreativeLicenseReceived} on a target address.
      * The call is not executed if the target address is not a contract.
      *
      * @param from address representing the previous owner of the given token ID
@@ -649,7 +622,7 @@ import "../../utils/introspection/ERC165.sol";
      * @param _data bytes optional data to send along with the call
      * @return bool whether the call correctly returned the expected magic value
      */
-    function _checkOnERC1190Received(
+    function _checkOnERC1190CreativeLicenseReceived(
         address from,
         address to,
         uint256 tokenId,
@@ -657,14 +630,56 @@ import "../../utils/introspection/ERC165.sol";
     ) private returns (bool) {
         if (to.isContract()) {
             try
-                IERC1190Receiver(to).onERC1190Received(
+                IERC1190Receiver(to).onERC1190CreativeLicenseReceived(
                     _msgSender(),
                     from,
                     tokenId,
                     _data
                 )
             returns (bytes4 retval) {
-                return retval == IERC1190Receiver.onERC1190Received.selector;
+                return retval == IERC1190Receiver.onERC1190CreativeLicenseReceived.selector;
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert(
+                        "ERC1190: transfer to non ERC1190Receiver implementer"
+                    );
+                } else {
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * @dev Internal function to invoke {IERC1190Receiver-onERC1190OwnershipLicenseReceived} on a target address.
+     * The call is not executed if the target address is not a contract.
+     *
+     * @param from address representing the previous owner of the given token ID
+     * @param to target address that will receive the tokens
+     * @param tokenId uint256 ID of the token to be transferred
+     * @param _data bytes optional data to send along with the call
+     * @return bool whether the call correctly returned the expected magic value
+     */
+    function _checkOnERC1190OwnershipLicenseReceived(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) private returns (bool) {
+        if (to.isContract()) {
+            try
+                IERC1190Receiver(to).onERC1190OwnershipLicenseReceived(
+                    _msgSender(),
+                    from,
+                    tokenId,
+                    _data
+                )
+            returns (bytes4 retval) {
+                return retval == IERC1190Receiver.onERC1190OwnershipLicenseReceived.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert(

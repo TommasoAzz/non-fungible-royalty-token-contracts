@@ -5,33 +5,49 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 interface IERC1190 is IERC165 {
     event Approval(
-        address[] indexed _owner,
-        address[] indexed _approved,
-        uint256 indexed _tokenId
-    );
-
-    event CreativeLicenseTransferred(
-        address[] indexed creativeLicenseHolders,
-        address[] indexed newOwners,
+        address indexed owner,
+        address indexed approved,
         uint256 indexed tokenId
     );
 
-    event OwnershipLicenseTransferred(
-        address[] indexed ownershipLicenseHolders,
-        address[] indexed newOwners,
+    event ApprovalForAll(
+        address indexed owner,
+        address indexed operator,
+        bool indexed approved
+    );
+
+    event TransferOwnershipLicense(
+        address indexed from,
+        address indexed to,
+        uint256 indexed tokenId
+    );
+
+    event TransferCreativeLicense(
+        address indexed from,
+        address indexed to,
         uint256 indexed tokenId
     );
 
     event AssetRented(
-        address[] indexed ownershipLicenseHolders,
-        address[] indexed renters,
-        uint256 indexed tokenId
+        address indexed renter,
+        uint256 indexed tokenId,
+        uint256 rentExpirationDateInMillis  
     );
 
     /**
      * @dev Returns the number of tokens in ``owner``'s account.
      */
-    function balanceOf(address owner) external view returns (uint256 balance);
+    function balanceOfOwner(address owner) external view returns (uint256 ownerBalance);
+
+    /**
+     * @dev Returns the number of tokens in ``creativeOwner``'s account.
+     */
+    function balanceOfCreativeOwner(address creativeOwner) external view returns (uint256 creativeOwnerBalance);
+
+    /**
+     * @dev Returns the number of tokens in ``renter``'s account.
+     */
+    function balanceOfRenter(address renter) external view returns (uint256 renterBalance);
 
     /**
      * @dev Returns the owner of the `tokenId` token.
@@ -42,33 +58,205 @@ interface IERC1190 is IERC165 {
      */
     function ownerOf(uint256 tokenId) external view returns (address owner);
 
-    // Function to initialize token and set the owner(s) and the royalty rates. Returns the unique token ID for the digital asset.
-    function approve(
-        address[] memory owners,
-        uint256 royaltyForOwnershipTransfer,
-        uint256 royaltyForRental
-    ) external returns (uint256);
+    /**
+     * @dev Returns the creative owner of the `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function creativeOwnerOf(uint256 tokenId) external view returns (address creativeOwner);
 
-    // Function to transfer creative license of token
-    function transferCreativeLicense(
-        address[] memory creativeLicenseHolders,
-        address[] memory newOwners,
+    /**
+     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * The approval is cleared when the token is transferred.
+     *
+     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
+     *
+     * Requirements:
+     *
+     * - The caller must own the token or be an approved operator.
+     * - `tokenId` must exist.
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address to, uint256 tokenId) external;
+
+    /**
+     * @dev Returns the account approved for `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function getApproved(uint256 tokenId) external view returns (address operator);
+
+    /**
+     * @dev Approve or remove `operator` as an operator for the caller.
+     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
+     *
+     * Requirements:
+     *
+     * - The `operator` cannot be the caller.
+     *
+     * Emits an {ApprovalForAll} event.
+     */
+    function setApprovalForAll(address operator, bool _approved) external;
+
+    /**
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
+     *
+     * See {setApprovalForAll}
+     */
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * are aware of the ERC1190 protocol to prevent tokens from being forever locked.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC1190Receiver-onERC1190Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferOwnershipLicenseFrom(
+        address from,
+        address to,
         uint256 tokenId
     ) external;
 
-    // Function to transfer ownership license of token
-    function transferOwnershipLicense(
-        address[] memory creativeLicenseHolders,
-        address[] memory ownershipLicenseHolders,
-        address[] memory newOwners,
+    
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC1190Receiver-onERC1190Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferOwnershipLicenseFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes calldata data
+    ) external;
+
+    /**
+     * @dev Transfers `tokenId` token from `from` to `to`.
+     *
+     * WARNING: Usage of this method is discouraged, use {safeTransferOwnershipLicenceFrom} whenever possible.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferOwnershipLicenseFrom(
+        address from,
+        address to,
         uint256 tokenId
     ) external;
 
-    // Function to rent asset
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * are aware of the ERC1190 protocol to prevent tokens from being forever locked.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC1190Receiver-onERC1190Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferCreativeLicenseFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    /**
+     * @dev Transfers `tokenId` token from `from` to `to`.
+     *
+     * WARNING: Usage of this method is discouraged, use {safeTransferOwnershipLicenceFrom} whenever possible.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferCreativeLicenseFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC1190Receiver-onERC1190Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferCreativeLicenseFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes calldata data
+    ) external;
+
+    /**
+     * @dev Enables the renting of `tokenId` token to `renter`.
+     *
+     * Requirements:
+     *
+     * - `renter` cannot be the zero address.
+     * - `tokenId` token must exist.
+     *
+     * Emits a {AssetRented} event.
+     */
     function rentAsset(
-        address[] memory creativeLicenseHolders,
-        address[] memory ownershipLicenseHolders,
-        address[] memory renters,
-        uint256 tokenId
+        address renter,
+        uint256 tokenId,
+        uint256 rentExpirationDateInMillis
     ) external;
+
+    /**
+     * @dev Returns the expiration date in milliseconds if `renter` is renting `tokenId` token currently.
+     * Calling this function twice could result in two diffent results if the rentExpirationDateInMillis corresponds to
+     * an expired date time.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     * - `renter` must exist.
+     * - `renter` must have rented `tokenId`.
+     */
+    function getRented(uint256 tokenId, address renter) external returns (uint256 rentExpirationDateInMillis);
 }
