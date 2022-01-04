@@ -44,6 +44,12 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     // Mapping from token ID to approved address
     mapping(uint256 => address) private _tokenApprovals;
 
+    // Mapping from token ID to rotyaltyForRental
+    mapping(uint256 => uint8) private _royaltiesForRental;
+
+    // Mapping from token ID to rotyaltyForOwnershipTransfer
+    mapping(uint256 => uint8) private _royaltiesForOwnershipTransfer;
+
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
@@ -516,11 +522,21 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     ) internal virtual {
         _mint(to, tokenId);
         require(
-            _checkOnERC1190OwnershipLicenseReceived(address(0), to, tokenId, _data),
+            _checkOnERC1190OwnershipLicenseReceived(
+                address(0),
+                to,
+                tokenId,
+                _data
+            ),
             "ERC1190: transfer to non ERC1190Receiver implementer"
         );
         require(
-            _checkOnERC1190CreativeLicenseReceived(address(0), to, tokenId, _data),
+            _checkOnERC1190CreativeLicenseReceived(
+                address(0),
+                to,
+                tokenId,
+                _data
+            ),
             "ERC1190: transfer to non ERC1190Receiver implementer"
         );
     }
@@ -550,6 +566,56 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         emit TransferOwnershipLicense(address(0), to, tokenId);
         emit TransferCreativeLicense(address(0), to, tokenId);
+    }
+
+    /**
+     * @dev Set royalties for rental and royalties for ownership transfer.
+     *
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     * - `royaltyForRental' must be in [0,100]
+     * -'royaltyForOwnershipTransfer' must be in [0,100]
+     */
+    function _setRoyalties(
+        uint256 _tokenId,
+        uint8 _royaltyForRental,
+        uint8 _royaltyForOwnershipTransfer
+    ) internal virtual {
+        require(!_exists(_tokenId), "ERC1190: token already minted");
+        require(
+            _royaltyForRental <= 100 && _royaltyForRental >= 0,
+            "Royalty for rental out of range"
+        );
+        require(
+            _royaltyForOwnershipTransfer <= 100 &&
+                _royaltyForOwnershipTransfer >= 0,
+            "Royalty for Ownership Transfer out of range"
+        );
+
+        _royaltiesForRental[_tokenId] = _royaltyForRental;
+        _royaltiesForOwnershipTransfer[_tokenId] = _royaltyForOwnershipTransfer;
+    }
+
+    function _royaltyForRental(uint256 _tokenId)
+        internal
+        view
+        virtual
+        returns (uint8)
+    {
+        require(!_exists(_tokenId), "ERC1190: token already minted");
+        return _royaltiesForRental[_tokenId];
+    }
+
+    function _royaltyForOwnershipTransfer(uint256 _tokenId)
+        internal
+        view
+        virtual
+        returns (uint8)
+    {
+        require(!_exists(_tokenId), "ERC1190: token already minted");
+        return _royaltiesForOwnershipTransfer[_tokenId];
     }
 
     /**
@@ -593,10 +659,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             _exists(tokenId),
             "ERC1190: approved query for nonexistent token"
         );
-        require(
-            renter != address(0),
-            "ERC1190: renter is the 0 address."
-        );
+        require(renter != address(0), "ERC1190: renter is the 0 address.");
         require(
             _renters[tokenId][renter] != 0,
             "The renter has not rented the token tokenId."
@@ -604,7 +667,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         uint256 expiration = _renters[tokenId][renter];
 
-        if(expiration < block.timestamp) {
+        if (expiration < block.timestamp) {
             delete _renters[tokenId][renter];
             _renterBalances[renter] -= 1;
         }
@@ -637,7 +700,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
                     _data
                 )
             returns (bytes4 retval) {
-                return retval == IERC1190Receiver.onERC1190CreativeLicenseReceived.selector;
+                return
+                    retval ==
+                    IERC1190Receiver.onERC1190CreativeLicenseReceived.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert(
@@ -679,7 +744,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
                     _data
                 )
             returns (bytes4 retval) {
-                return retval == IERC1190Receiver.onERC1190OwnershipLicenseReceived.selector;
+                return
+                    retval ==
+                    IERC1190Receiver.onERC1190OwnershipLicenseReceived.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert(
