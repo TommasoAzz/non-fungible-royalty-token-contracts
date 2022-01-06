@@ -1,37 +1,9 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/node,soliditytruffle,visualstudiocode,angular
-# Edit at https://www.toptal.com/developers/gitignore?templates=node,soliditytruffle,visualstudiocode,angular
+# Created by https://www.toptal.com/developers/gitignore/api/soliditytruffle,node,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=soliditytruffle,node,visualstudiocode
 
-### Angular ###
-## Angular ##
-# compiled output
-dist/
-tmp/
-app/**/*.js
-app/**/*.js.map
-
-# dependencies
-node_modules/
-bower_components/
-
-# IDEs and editors
-.idea/
-
-# misc
-.sass-cache/
-connect.lock/
-coverage/
-libpeerconnection.log/
-npm-debug.log
-testem.log
-typings/
-
-# e2e
-e2e/*.js
-e2e/*.map
-
-# System Files
-.DS_Store/
+### Project related ###
+types
 
 ### Node ###
 # Logs
@@ -75,6 +47,7 @@ bower_components
 build/Release
 
 # Dependency directories
+node_modules/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -174,6 +147,7 @@ build_webpack
 
 # misc
 .DS_Store
+npm-debug.log
 .truffle-solidity-loader
 .vagrant/**
 blockchain/geth/**
@@ -203,4 +177,4 @@ package-lock.json
 # Support for Project snippet scope
 !.vscode/*.code-snippets
 
-# End of https://www.toptal.com/developers/gitignore/api/node,soliditytruffle,visualstudiocode,angular
+# End of https://www.toptal.com/developers/gitignore/api/soliditytruffle,node,visualstudiocode

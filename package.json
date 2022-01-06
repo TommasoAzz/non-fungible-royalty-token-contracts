@@ -1,7 +1,7 @@
 {
   "name": "non-fungible-royalty-token",
   "version": "1.0.0",
-  "description": "University project for implementing the ERC1190",
+  "description": "University project for implementing a slightly modified version of the ERC1190 proposal.",
   "main": "truffle.js",
   "directories": {
     "test": "test"
@@ -9,8 +9,19 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.1"
   },
+  "devDependencies": {
+    "truffle": "^5.4.26",
+    "ts-node": "^10.4.0",
+    "typechain": "^6.1.0",
+    "typescript": "^4.5.4",
+    "@typechain/truffle-v5": "^6.0.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^17.0.8"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "generate-types": "npx typechain --target=truffle-v5 'build/contracts/*.json'",
+    "postinstall": "npx truffle compile && npm run generate-types"
   },
   "repository": {
     "type": "git",
