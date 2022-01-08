@@ -23,8 +23,8 @@
   },
   "scripts": {
     "generate-types": "npx typechain --target=truffle-v5 'build/contracts/*.json'",
-    "postinstall": "npx truffle compile && npm run generate-types",
-    "docs": "npx solidity-docgen --solc-module solc-0.8.11"
+    "docs": "npx solidity-docgen --solc-module solc-0.8.11",
+    "postinstall": "npx truffle compile && npm run generate-types && npm run docs"
   },
   "repository": {
     "type": "git",

@@ -11,6 +11,9 @@ contract ERC1190Tradable is ERC1190 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    // Base URI
+    string private _base;
+
     // The price in wei of each token that can be owned.
     mapping(uint256 => uint256) private _ownershipPrice;
 
@@ -20,9 +23,18 @@ contract ERC1190Tradable is ERC1190 {
     /**
      * @dev See {ERC1190-constructor}.
      */
-    constructor(string memory tokenName, string memory tokenSymbol)
+    constructor(string memory tokenName, string memory tokenSymbol, string memory tokenBaseUri)
         ERC1190(tokenName, tokenSymbol)
-    {}
+    {
+        _base = tokenBaseUri;
+    }
+
+    /**
+     * See {ERC1190-_baseURI}.
+     */
+    function _baseURI() internal view virtual override returns (string memory) {
+        return _base;
+    }
 
     /**
      * @dev Generates a new token and assigns its ownership and creative

@@ -5,11 +5,17 @@
 Implementation of ERC1190 with payable methods.
 
 
-### `constructor(string tokenName, string tokenSymbol)` (public)
+### `constructor(string tokenName, string tokenSymbol, string tokenBaseUri)` (public)
 
 
 
 See {ERC1190-constructor}.
+
+### `_baseURI() → string` (internal)
+
+See {ERC1190-_baseURI}.
+
+
 
 ### `mint(address creator, uint8 royaltyForRental, uint8 royaltyForOwnershipTransfer) → uint256` (external)
 
