@@ -56,7 +56,9 @@ contract ERC1190Tradable is ERC1190 {
      * - `tokenId` must exist.
      * - `priceInWei` must be greater than 0.
      */
-    function setOwnershipLicensePrice(uint256 tokenId, uint256 priceInWei) external {
+    function setOwnershipLicensePrice(uint256 tokenId, uint256 priceInWei)
+        external
+    {
         require(
             super._exists(tokenId),
             "ERC1190Tradable: The token does not exist."
@@ -134,6 +136,12 @@ contract ERC1190Tradable is ERC1190 {
         address payable owner = payable(super.ownerOf(tokenId));
         address payable creativeOwner = payable(super.creativeOwnerOf(tokenId));
 
+        super.rentAsset(
+            super._msgSender(),
+            tokenId,
+            rentExpirationDateInMillis
+        );
+
         if (owner == creativeOwner) {
             owner.transfer(msg.value);
         } else {
@@ -142,12 +150,6 @@ contract ERC1190Tradable is ERC1190 {
             owner.transfer((msg.value * (100 - royalty)) / 100);
             creativeOwner.transfer((msg.value * royalty) / 100);
         }
-
-        super.rentAsset(
-            super._msgSender(),
-            tokenId,
-            rentExpirationDateInMillis
-        );
     }
 
     /**
@@ -183,6 +185,8 @@ contract ERC1190Tradable is ERC1190 {
         address payable owner = payable(super.ownerOf(tokenId));
         address payable creativeOwner = payable(super.creativeOwnerOf(tokenId));
 
+        super.transferOwnershipLicense(owner, super._msgSender(), tokenId);
+
         if (owner == creativeOwner) {
             owner.transfer(msg.value);
         } else {
@@ -190,8 +194,6 @@ contract ERC1190Tradable is ERC1190 {
             owner.transfer((msg.value * (100 - royalty)) / 100);
             creativeOwner.transfer((msg.value * royalty) / 100);
         }
-
-        super.transferOwnershipLicense(owner, super._msgSender(), tokenId);
     }
 
     /**
