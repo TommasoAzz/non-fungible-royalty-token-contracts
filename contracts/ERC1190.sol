@@ -367,8 +367,6 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             "ERC1190: Cannot transfer to the zero address."
         );
 
-        _beforeTokenTransfer(from, to, tokenId);
-
         // Clear approvals from the previous owner
         _approve(owner, address(0), tokenId);
 
@@ -459,8 +457,6 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             "ERC1190: Cannot transfer to the zero address."
         );
 
-        _beforeTokenTransfer(from, to, tokenId);
-
         // Clear approvals from the previous owner
         _approve(creativeOwner, address(0), tokenId);
 
@@ -532,7 +528,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     }
 
     /**
-     * @dev Same as {xref-ERC1190-_safeMint-address-uint256-}[`_safeMint`], with an additional `data` parameter which is
+     * @dev Same as {_safeMint(address,uint256)}, with an additional `data` parameter which is
      * forwarded in {IERC1190Receiver-onERC1190OwnershipLicenseReceived} and
      * {IERC1190Receiver-onERC1190CreativeLicenseReceived} to contract recipients.
      */
@@ -579,8 +575,6 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     function _mint(address to, uint256 tokenId) internal virtual {
         require(to != address(0), "ERC1190: to cannot be the zero address.");
         require(!_exists(tokenId), "ERC1190: The token already exists.");
-
-        _beforeTokenTransfer(address(0), to, tokenId);
 
         _ownerBalances[to] += 1;
         _creativeOwnerBalances[to] += 1;
@@ -791,24 +785,4 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             return true;
         }
     }
-
-    /**
-     * @dev Hook that is called before any token transfer. This includes minting
-     * and burning.
-     *
-     * Calling conditions:
-     *
-     * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
-     * transferred to `to`.
-     * - When `from` is zero, `tokenId` will be minted for `to`.
-     * - When `to` is zero, ``from``'s `tokenId` will be burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
 }
