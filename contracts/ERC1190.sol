@@ -207,7 +207,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      * Tokens start existing when they are minted (`_mint`).
      */
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return (_owners[tokenId] != address(0) ||
+        return (_owners[tokenId] != address(0) &&
             _creativeOwners[tokenId] != address(0));
     }
 
@@ -616,7 +616,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         uint8 royaltyForRental,
         uint8 royaltyForOwnershipTransfer
     ) internal virtual {
-        require(!_exists(tokenId), "ERC1190: token already minted");
+        require(_exists(tokenId), "ERC1190: token already minted");
 
         require(
             royaltyForRental <= 100 && royaltyForRental >= 0,
