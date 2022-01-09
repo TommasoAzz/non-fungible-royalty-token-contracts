@@ -6,7 +6,7 @@ tsNode.register({
 
 module.exports = {
   networks: {
-    develop: {
+    development: {
       host: "127.0.0.1",
       port: 8545,
       network_id: "*",

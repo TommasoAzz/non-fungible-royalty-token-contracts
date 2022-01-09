@@ -2,15 +2,16 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 import "./IERC1190.sol";
-import "./IERC1190Receiver.sol";
 import "./IERC1190Metadata.sol";
+import "./IERC1190OwnershipLicenseReceiver.sol";
+import "./IERC1190CreativeLicenseReceiver.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /**
- * @dev Implementation of IERC1190.sol, including the Metadata extension.
+ * @dev Implementation of IERC1190.sol and IERC1190Metadata.sol.
  */
 contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     using Address for address;
@@ -30,6 +31,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
     // Mapping from token ID to renters address
     mapping(uint256 => mapping(address => uint256)) private _renters;
+
+    // Mapping from token ID to renters addresses
+    mapping(uint256 => address[]) private _renterLists;
 
     // Mapping owner address to token count
     mapping(address => uint256) private _ownerBalances;
@@ -166,6 +170,19 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         );
 
         return creativeOwner;
+    }
+
+    /**
+     * @dev See {IERC1190-rentersOf}.
+     */
+    function rentersOf(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (address[] memory)
+    {
+        return _renterLists[tokenId];
     }
 
     /**
@@ -665,6 +682,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
 
         _renters[tokenId][renter] = rentExpirationDateInMillis;
+        _renterLists[tokenId].push(renter);
         _renterBalances[renter] += 1;
 
         emit AssetRented(renter, tokenId, rentExpirationDateInMillis);
@@ -681,7 +699,10 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
 
-        require(renter != address(0), "ERC1190: renter cannot be the zero address.");
+        require(
+            renter != address(0),
+            "ERC1190: renter cannot be the zero address."
+        );
 
         require(
             _renters[tokenId][renter] != 0,
@@ -690,8 +711,20 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         uint256 expiration = _renters[tokenId][renter];
 
-        if (expiration < block.timestamp) { // block.timestamp is the current date and time.
+        if (expiration < block.timestamp) {
+            // block.timestamp is the current date and time.
             delete _renters[tokenId][renter];
+            bool stop = false;
+            for (
+                uint256 i = 0;
+                i < _renterLists[tokenId].length && !stop;
+                i++
+            ) {
+                if (_renterLists[tokenId][i] == renter) {
+                    delete _renterLists[tokenId][i];
+                    stop = true;
+                }
+            }
             _renterBalances[renter] -= 1;
         }
 
@@ -716,20 +749,23 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     ) private returns (bool) {
         if (to.isContract()) {
             try
-                IERC1190Receiver(to).onERC1190CreativeLicenseReceived(
-                    _msgSender(),
-                    from,
-                    tokenId,
-                    data
-                )
+                IERC1190CreativeLicenseReceiver(to)
+                    .onERC1190CreativeLicenseReceived(
+                        _msgSender(),
+                        from,
+                        tokenId,
+                        data
+                    )
             returns (bytes4 retval) {
                 return
                     retval ==
-                    IERC1190Receiver.onERC1190CreativeLicenseReceived.selector;
+                    IERC1190CreativeLicenseReceiver
+                        .onERC1190CreativeLicenseReceived
+                        .selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert(
-                        "ERC1190: Tried transfer to contract not implementing IERC1190Receiver."
+                        "ERC1190: Tried transfer to contract not implementing IERC1190CreativeLicenseReceiver."
                     );
                 } else {
                     assembly {
@@ -760,16 +796,19 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     ) private returns (bool) {
         if (to.isContract()) {
             try
-                IERC1190Receiver(to).onERC1190OwnershipLicenseReceived(
-                    _msgSender(),
-                    from,
-                    tokenId,
-                    data
-                )
+                IERC1190OwnershipLicenseReceiver(to)
+                    .onERC1190OwnershipLicenseReceived(
+                        _msgSender(),
+                        from,
+                        tokenId,
+                        data
+                    )
             returns (bytes4 retval) {
                 return
                     retval ==
-                    IERC1190Receiver.onERC1190OwnershipLicenseReceived.selector;
+                    IERC1190OwnershipLicenseReceiver
+                        .onERC1190OwnershipLicenseReceived
+                        .selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert(
