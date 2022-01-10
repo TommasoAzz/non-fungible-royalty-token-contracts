@@ -3,11 +3,12 @@ pragma solidity >=0.4.22 <0.9.0;
 
 import "./ERC1190.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Implementation of ERC1190 with payable methods.
  */
-contract ERC1190Tradable is ERC1190 {
+contract ERC1190Tradable is ERC1190, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -48,7 +49,7 @@ contract ERC1190Tradable is ERC1190 {
         address creator,
         uint8 royaltyForRental,
         uint8 royaltyForOwnershipTransfer
-    ) external returns (uint256) {
+    ) external onlyOwner returns (uint256) {
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();

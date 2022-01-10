@@ -730,7 +730,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         uint256 expiration = _renters[tokenId][renter];
 
-        if (expiration < block.timestamp) {
+        if (expiration < block.timestamp * 1000) {
             // block.timestamp is the current date and time.
             delete _renters[tokenId][renter];
             bool stop = false;
@@ -740,7 +740,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
                 i++
             ) {
                 if (_renterLists[tokenId][i] == renter) {
-                    delete _renterLists[tokenId][i];
+                    // Moving the last item inside the position of the item to remove, popping the last one.
+                    _renterLists[tokenId][i] = _renterLists[tokenId][_renterLists[tokenId].length - 1];
+                    _renterLists[tokenId].pop();
                     stop = true;
                 }
             }
