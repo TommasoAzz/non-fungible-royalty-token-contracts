@@ -37,6 +37,18 @@ Requirements:
 - `tokenId` must exist.
 - `priceInWei` must be greater than 0.
 
+### `setCreativeLicensePrice(uint256 tokenId, uint256 priceInWei)` (external)
+
+
+
+Sets the price for acquiring property of the creative license of token
+`tokenId`.
+
+Requirements:
+
+- `tokenId` must exist.
+- `priceInWei` must be greater than 0.
+
 ### `setRentalPrice(uint256 tokenId, uint256 priceInWei)` (external)
 
 
@@ -61,6 +73,18 @@ Requirements:
 - `rentExpirationDateInMillis` should correspond to a future date.
 - the sent money should be enough to cover the renting expenses.
 
+### `transferOwnershipLicense(uint256 tokenId, address to)` (external)
+
+
+
+Transfers the ownership license from the current owner to the account `to`.
+
+Requirements:
+
+- `tokenId` must exist.
+- the sender of the request must be the owner.
+- the receiver account `to` must not be the zero address.
+
 ### `obtainOwnershipLicense(uint256 tokenId)` (external)
 
 
@@ -84,6 +108,18 @@ Requirements:
 - `tokenId` must exist.
 - the sender of the request must be the creative owner.
 - the receiver account `to` must not be the zero address.
+
+### `obtainCreativeLicense(uint256 tokenId)` (external)
+
+
+
+Transfers the creative license from the current owner to the sender of the request.
+
+Requirements:
+
+- `tokenId` must exist.
+- A creative license price must have been set via {setCreativeLicensePrice}.
+- the sent money should be enough to cover the license expense.
 
 
 
