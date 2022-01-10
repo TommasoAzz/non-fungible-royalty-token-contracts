@@ -17,6 +17,9 @@ contract ERC1190Tradable is ERC1190 {
     // The price in wei of each token that can be owned.
     mapping(uint256 => uint256) private _ownershipPrice;
 
+    // The price in wei of each token that can be creative owned.
+    mapping(uint256 => uint256) private _creativePrice;
+
     // The price in wei of each token that can be rented.
     mapping(uint256 => uint256) private _rentalPrice;
 
@@ -82,6 +85,31 @@ contract ERC1190Tradable is ERC1190 {
         );
 
         _ownershipPrice[tokenId] = priceInWei;
+    }
+
+    /**
+     * @dev Sets the price for acquiring property of the creative license of token
+     * `tokenId`.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     * - `priceInWei` must be greater than 0.
+     */
+    function setCreativeLicensePrice(uint256 tokenId, uint256 priceInWei)
+        external
+    {
+        require(
+            super._exists(tokenId),
+            "ERC1190Tradable: The token does not exist."
+        );
+
+        require(
+            priceInWei > 0,
+            "ERC1190Tradable: The creative license cost must be greater than 0."
+        );
+
+        _creativePrice[tokenId] = priceInWei;
     }
 
     /**
@@ -165,6 +193,31 @@ contract ERC1190Tradable is ERC1190 {
     }
 
     /**
+     * @dev Transfers the ownership license from the current owner to the account `to`.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     * - the sender of the request must be the owner.
+     * - the receiver account `to` must not be the zero address.
+     */
+    function transferOwnershipLicense(uint256 tokenId, address to) external {
+        require(
+            to != address(0),
+            "ERC1190Tradable: Cannot transfer the Ownership license to the zero address."
+        );
+
+        address owner = super.ownerOf(tokenId);
+
+        require(
+            super._msgSender() == owner,
+            "ERC1190Tradable: The sender does not own the ownership license."
+        );
+
+        super.transferCreativeLicense(owner, to, tokenId);
+    }
+
+    /**
      * @dev Transfers the ownership license from the current owner to the sender of the request.
      *
      * Requirements:
@@ -181,7 +234,7 @@ contract ERC1190Tradable is ERC1190 {
 
         require(
             _ownershipPrice[tokenId] > 0,
-            "ERC1190Tradable: The ownership license of this token cannot be transfered."
+            "ERC1190Tradable: The ownership license of this token cannot be transferred."
         );
 
         require(
@@ -191,7 +244,7 @@ contract ERC1190Tradable is ERC1190 {
 
         require(
             super._msgSender() != address(0),
-            "ERC1190Tradable: Cannot transfer the ownership to the zero address."
+            "ERC1190Tradable: Cannot transfer the ownership license to the zero address."
         );
 
         address payable owner = payable(super.ownerOf(tokenId));
@@ -231,5 +284,42 @@ contract ERC1190Tradable is ERC1190 {
         );
 
         super.transferCreativeLicense(creativeOwner, to, tokenId);
+    }
+
+    /**
+     * @dev Transfers the creative license from the current owner to the sender of the request.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     * - A creative license price must have been set via {setCreativeLicensePrice}.
+     * - the sent money should be enough to cover the license expense.
+     */
+    function obtainCreativeLicense(uint256 tokenId) external payable {
+        require(
+            super._exists(tokenId),
+            "ERC1190Tradable: The token does not exist."
+        );
+
+        require(
+            _creativePrice[tokenId] > 0,
+            "ERC1190Tradable: The creative license of this token cannot be transferred."
+        );
+
+        require(
+            msg.value >= _creativePrice[tokenId],
+            "ERC1190Tradable: The amount of wei sent is not sufficient for obtaining the creative license of this token."
+        );
+
+        require(
+            super._msgSender() != address(0),
+            "ERC1190Tradable: Cannot transfer the creative license to the zero address."
+        );
+
+        address payable creativeOwner = payable(super.creativeOwnerOf(tokenId));
+
+        super.transferCreativeLicense(creativeOwner, super._msgSender(), tokenId);
+
+        creativeOwner.transfer(msg.value);
     }
 }

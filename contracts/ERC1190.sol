@@ -329,13 +329,13 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     }
 
     /**
-     * @dev Returns whether `spender` is allowed to manage `tokenId`.
+     * @dev Returns whether `account` is allowed to manage `tokenId`.
      *
      * Requirements:
      *
      * - `tokenId` must exist.
      */
-    function _isApprovedOrOwner(address spender, uint256 tokenId)
+    function _isApprovedOrOwner(address account, uint256 tokenId)
         internal
         view
         virtual
@@ -344,9 +344,30 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
         address owner = ERC1190.ownerOf(tokenId);
 
-        return (spender == owner ||
-            getApproved(tokenId) == spender ||
-            isApprovedForAll(owner, spender));
+        return (account == owner ||
+            getApproved(tokenId) == account ||
+            isApprovedForAll(owner, account));
+    }
+
+    /**
+     * @dev Returns whether `account` is allowed to manage `tokenId`.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function _isApprovedOrCreativeOwner(address account, uint256 tokenId)
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        require(_exists(tokenId), "ERC1190: The token does not exist.");
+        address creativeOwner = ERC1190.creativeOwnerOf(tokenId);
+
+        return (account == creativeOwner ||
+            getApproved(tokenId) == account ||
+            isApprovedForAll(creativeOwner, account));
     }
 
     /**
@@ -373,7 +394,6 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         address to,
         uint256 tokenId
     ) internal virtual {
-        // Not sure this first require is actually required!
         address owner = ERC1190.ownerOf(tokenId);
         require(
             owner == from,
@@ -448,8 +468,8 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         uint256 tokenId
     ) public virtual override {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC1190: The sender is neither the owner nor approved to manage the token."
+            _isApprovedOrCreativeOwner(_msgSender(), tokenId),
+            "ERC1190: The sender is neither the creative owner nor approved to manage the token."
         );
 
         _transferCreativeLicense(from, to, tokenId);
@@ -463,8 +483,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         address to,
         uint256 tokenId
     ) internal virtual {
-        // Not sure this first require is actually required!
-        address creativeOwner = ERC1190.ownerOf(tokenId);
+        address creativeOwner = ERC1190.creativeOwnerOf(tokenId);
         require(
             creativeOwner == from,
             "ERC1190: Cannot transfer the ownership license if it is not owned."
@@ -505,8 +524,8 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         bytes memory data
     ) public virtual override {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC1190: The sender is neither the owner nor approved to manage the token."
+            _isApprovedOrCreativeOwner(_msgSender(), tokenId),
+            "ERC1190: The sender is neither the creative owner nor approved to manage the token."
         );
 
         _safeTransferCreativeLicense(from, to, tokenId, data);
