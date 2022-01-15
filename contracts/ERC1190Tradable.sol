@@ -12,6 +12,13 @@ contract ERC1190Tradable is ERC1190, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    event TokenMinted(
+        address creator,
+        uint8 royaltyForRental,
+        uint8 royaltyForOwnershipTransfer,
+        uint256 tokenAddress
+    );
+
     // Base URI
     string private _base;
 
@@ -27,9 +34,11 @@ contract ERC1190Tradable is ERC1190, Ownable {
     /**
      * @dev See {ERC1190-constructor}.
      */
-    constructor(string memory tokenName, string memory tokenSymbol, string memory tokenBaseUri)
-        ERC1190(tokenName, tokenSymbol)
-    {
+    constructor(
+        string memory tokenName,
+        string memory tokenSymbol,
+        string memory tokenBaseUri
+    ) ERC1190(tokenName, tokenSymbol) {
         _base = tokenBaseUri;
     }
 
@@ -59,6 +68,8 @@ contract ERC1190Tradable is ERC1190, Ownable {
             royaltyForRental,
             royaltyForOwnershipTransfer
         );
+
+        emit TokenMinted(creator, royaltyForRental, royaltyForOwnershipTransfer, newItemId);
 
         return newItemId;
     }
@@ -319,7 +330,11 @@ contract ERC1190Tradable is ERC1190, Ownable {
 
         address payable creativeOwner = payable(super.creativeOwnerOf(tokenId));
 
-        super.transferCreativeLicense(creativeOwner, super._msgSender(), tokenId);
+        super.transferCreativeLicense(
+            creativeOwner,
+            super._msgSender(),
+            tokenId
+        );
 
         creativeOwner.transfer(msg.value);
     }

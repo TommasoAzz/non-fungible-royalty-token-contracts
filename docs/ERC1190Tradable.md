@@ -122,5 +122,11 @@ Requirements:
 - the sent money should be enough to cover the license expense.
 
 
+### `TokenMinted(address creator, uint8 royaltyForRental, uint8 royaltyForOwnershipTransfer, uint256 tokenAddress)`
+
+
+
+
+
 
 
