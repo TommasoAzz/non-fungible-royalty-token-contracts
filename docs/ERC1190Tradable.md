@@ -11,6 +11,12 @@ Implementation of ERC1190 with payable methods.
 
 See {ERC1190-constructor}.
 
+### `availableTokens() → uint256` (external)
+
+
+
+
+
 ### `_baseURI() → string` (internal)
 
 See {ERC1190-_baseURI}.

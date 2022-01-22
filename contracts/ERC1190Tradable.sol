@@ -42,6 +42,10 @@ contract ERC1190Tradable is ERC1190, Ownable {
         _base = tokenBaseUri;
     }
 
+    function availableTokens() external view returns (uint256) {
+        return _tokenIds.current();
+    }
+
     /**
      * See {ERC1190-_baseURI}.
      */
