@@ -60,6 +60,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
      */
     function mint(
         address creator,
+        string calldata file,
         uint8 royaltyForRental,
         uint8 royaltyForOwnershipTransfer
     ) external onlyOwner returns (uint256) {
@@ -67,6 +68,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
 
         uint256 newItemId = _tokenIds.current();
         super._mint(creator, newItemId);
+        super._associateFile(newItemId, file);
         super._setRoyalties(
             newItemId,
             royaltyForRental,

@@ -53,11 +53,11 @@ contract("ERC1190Tradable", (accounts) => {
 
         it("Minting the contract and checking the balance", async () => {
             // Call performs a "fake transaction", i.e. performs the transaction, returns the result and then does a rollback.
-            const tokenId = await erc1190Tradable.mint.call(firstAccount, (1).toBN(), (1).toBN(), {
+            const tokenId = await erc1190Tradable.mint.call(firstAccount, "file", (1).toBN(), (1).toBN(), {
                 from: firstAccount
             });
             console.log("Generated token's id - tokenId = " + tokenId.toString());
-            await erc1190Tradable.mint.sendTransaction(firstAccount, (1).toBN(), (1).toBN(), {
+            await erc1190Tradable.mint.sendTransaction(firstAccount, "file", (1).toBN(), (1).toBN(), {
                 from: firstAccount
             });
 
@@ -159,7 +159,7 @@ contract("ERC1190Tradable", (accounts) => {
 
             const expirationDateInvalid = await (await setTimeout(5000, async () => {
                 // Generating a random transaction just to update block.timestamp
-                await erc1190Tradable.mint.sendTransaction(firstAccount, (2).toBN(), (88).toBN());
+                await erc1190Tradable.mint.sendTransaction(firstAccount, "file", (2).toBN(), (88).toBN());
                 // Actual test
                 const expirationDateInvalid = await erc1190Tradable.getRented.call((1).toBN(), thirdAccount);
                 await erc1190Tradable.getRented.sendTransaction((1).toBN(), thirdAccount);

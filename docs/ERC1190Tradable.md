@@ -23,7 +23,7 @@ See {ERC1190-_baseURI}.
 
 
 
-### `mint(address creator, uint8 royaltyForRental, uint8 royaltyForOwnershipTransfer) → uint256` (external)
+### `mint(address creator, string file, uint8 royaltyForRental, uint8 royaltyForOwnershipTransfer) → uint256` (external)
 
 
 

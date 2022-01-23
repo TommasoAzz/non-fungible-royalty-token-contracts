@@ -56,6 +56,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
+    // Mapping from token to file.
+    mapping(uint256 => string) private _files;
+
     /**
      * @dev Initializes the contract by setting a `tokenName` and a `tokenSymbol` to the token collection.
      */
@@ -222,11 +225,12 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         returns (string memory)
     {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
+        require(bytes(_files[tokenId]).length > 0, "ERC1190: No file associated to the token.");
 
         string memory baseURI = _baseURI();
         return
             bytes(baseURI).length > 0
-                ? string(abi.encodePacked(baseURI, tokenId.toString()))
+                ? string(abi.encodePacked(baseURI, _files[tokenId]))
                 : "";
     }
 
@@ -619,6 +623,12 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         emit TransferOwnershipLicense(address(0), to, tokenId);
         emit TransferCreativeLicense(address(0), to, tokenId);
+    }
+
+    function _associateFile(uint256 tokenId, string calldata file) internal virtual {
+        require(_exists(tokenId), "ERC1190: The token does not exist.");
+
+        _files[tokenId] = file;
     }
 
     /**
