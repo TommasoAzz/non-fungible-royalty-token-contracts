@@ -16,7 +16,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
         address creator,
         uint8 royaltyForRental,
         uint8 royaltyForOwnershipTransfer,
-        uint256 tokenAddress
+        uint256 tokenId
     );
 
     // Base URI
