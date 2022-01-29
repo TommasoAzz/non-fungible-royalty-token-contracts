@@ -9,6 +9,6 @@ module.exports = (artifacts: Truffle.Artifacts) => {
 
     // Deploying test contracts!
     deployer.deploy(ERC1190, "ERC1190TradableTestToken", "1190-TTST");
-    deployer.deploy(ERC1190Tradable, "ERC1190TradableTestToken", "1190-TTST", "");
+    deployer.deploy(ERC1190Tradable, "ERC1190TradableTestToken", "1190-TTST", "https://ipfs.io/ipfs/");
   };
 };

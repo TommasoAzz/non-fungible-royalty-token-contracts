@@ -69,6 +69,10 @@ contract("ERC1190Tradable", (accounts) => {
 
             assert.equal(tokensOwned.toNumber(), 1);
             assert.equal(tokensCreativelyOwned.toNumber(), 1);
+
+            const tokenURI = await erc1190Tradable.tokenURI(tokenId);
+            assert.equal(tokenURI, "https://ipfs.io/ipfs/file");
+            console.log("Token URI: " + tokenURI);
         });
     });
 
