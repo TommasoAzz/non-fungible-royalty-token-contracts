@@ -46,6 +46,24 @@ contract ERC1190Tradable is ERC1190, Ownable {
         return _tokenIds.current();
     }
 
+    function ownershipPriceOf(uint256 tokenId) external view returns (uint256) {
+        require(_exists(tokenId), "ERC1190Tradable: The token does not exist.");
+
+        return _ownershipPrice[tokenId];
+    }
+
+    function creativeOwnershipPriceOf(uint256 tokenId) external view returns (uint256) {
+        require(_exists(tokenId), "ERC1190Tradable: The token does not exist.");
+        
+        return _creativePrice[tokenId];
+    }
+
+    function rentalPriceOf(uint256 tokenId) external view returns (uint256) {
+        require(_exists(tokenId), "ERC1190Tradable: The token does not exist.");
+        
+        return _rentalPrice[tokenId];
+    }
+
     /**
      * See {ERC1190-_baseURI}.
      */

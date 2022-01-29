@@ -17,6 +17,24 @@ See {ERC1190-constructor}.
 
 
 
+### `ownershipPriceOf(uint256 tokenId) → uint256` (external)
+
+
+
+
+
+### `creativeOwnershipPriceOf(uint256 tokenId) → uint256` (external)
+
+
+
+
+
+### `rentalPriceOf(uint256 tokenId) → uint256` (external)
+
+
+
+
+
 ### `_baseURI() → string` (internal)
 
 See {ERC1190-_baseURI}.
