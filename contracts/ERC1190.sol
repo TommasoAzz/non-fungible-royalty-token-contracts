@@ -225,7 +225,10 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         returns (string memory)
     {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
-        require(bytes(_files[tokenId]).length > 0, "ERC1190: No file associated to the token.");
+        require(
+            bytes(_files[tokenId]).length > 0,
+            "ERC1190: No file associated to the token."
+        );
 
         string memory baseURI = _baseURI();
         return
@@ -625,7 +628,10 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         emit TransferCreativeLicense(address(0), to, tokenId);
     }
 
-    function _associateFile(uint256 tokenId, string calldata file) internal virtual {
+    function _associateFile(uint256 tokenId, string calldata file)
+        internal
+        virtual
+    {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
 
         _files[tokenId] = file;
@@ -637,29 +643,37 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      * Requirements:
      *
      * - `tokenId` must exist.
-     * - `royaltyForRental` must be in [0,100].
-     * - `royaltyForOwnershipTransfer` must be in [0,100].
+     * - `rentalRoyalty` must be in [0,100].
+     * - `ownershipTransferRoyalty` must be in [0,100].
      */
     function _setRoyalties(
         uint256 tokenId,
-        uint8 royaltyForRental,
-        uint8 royaltyForOwnershipTransfer
+        uint8 rentalRoyalty,
+        uint8 ownershipTransferRoyalty
     ) internal virtual {
         require(_exists(tokenId), "ERC1190: token already minted");
 
         require(
-            royaltyForRental <= 100 && royaltyForRental >= 0,
+            rentalRoyalty <= 100 && rentalRoyalty >= 0,
             "ERC1190: Royalty for rental out of range [0,100]."
         );
 
         require(
-            royaltyForOwnershipTransfer <= 100 &&
-                royaltyForOwnershipTransfer >= 0,
+            ownershipTransferRoyalty <= 100 && ownershipTransferRoyalty >= 0,
             "ERC1190: Royalty for ownership transfer out of range [0,100]."
         );
 
-        _royaltiesForRental[tokenId] = royaltyForRental;
-        _royaltiesForOwnershipTransfer[tokenId] = royaltyForOwnershipTransfer;
+        _royaltiesForRental[tokenId] = rentalRoyalty;
+        _royaltiesForOwnershipTransfer[tokenId] = ownershipTransferRoyalty;
+    }
+
+    function royaltyForRental(uint256 _tokenId)
+        external
+        view
+        virtual
+        returns (uint8)
+    {
+        return _royaltyForRental(_tokenId);
     }
 
     function _royaltyForRental(uint256 _tokenId)
@@ -671,6 +685,15 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         require(!_exists(_tokenId), "ERC1190: The token already exists.");
 
         return _royaltiesForRental[_tokenId];
+    }
+
+    function royaltyForOwnershipTransfer(uint256 _tokenId)
+        external
+        view
+        virtual
+        returns (uint8)
+    {
+        return _royaltyForOwnershipTransfer(_tokenId);
     }
 
     function _royaltyForOwnershipTransfer(uint256 _tokenId)
@@ -751,7 +774,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             ) {
                 if (_renterLists[tokenId][i] == renter) {
                     // Moving the last item inside the position of the item to remove, popping the last one.
-                    _renterLists[tokenId][i] = _renterLists[tokenId][_renterLists[tokenId].length - 1];
+                    _renterLists[tokenId][i] = _renterLists[tokenId][
+                        _renterLists[tokenId].length - 1
+                    ];
                     _renterLists[tokenId].pop();
                     stop = true;
                 }
