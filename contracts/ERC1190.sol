@@ -651,15 +651,15 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         uint8 rentalRoyalty,
         uint8 ownershipTransferRoyalty
     ) internal virtual {
-        require(_exists(tokenId), "ERC1190: token already minted");
+        require(_exists(tokenId), "ERC1190: The token does not exist.");
 
         require(
-            rentalRoyalty <= 100 && rentalRoyalty >= 0,
+            0 <= rentalRoyalty && rentalRoyalty <= 100,
             "ERC1190: Royalty for rental out of range [0,100]."
         );
 
         require(
-            ownershipTransferRoyalty <= 100 && ownershipTransferRoyalty >= 0,
+            0 <= ownershipTransferRoyalty && ownershipTransferRoyalty <= 100,
             "ERC1190: Royalty for ownership transfer out of range [0,100]."
         );
 

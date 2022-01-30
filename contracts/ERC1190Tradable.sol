@@ -74,13 +74,13 @@ contract ERC1190Tradable is ERC1190, Ownable {
     /**
      * @dev Generates a new token and assigns its ownership and creative
      * license to `creator`.
-     * The royalties are set via `royaltyForRental` and `royaltyForOwnershipTransfer`.
+     * The royalties are set via `rentalRoyalty` and `ownershipTransferRoyalty`.
      */
     function mint(
         address creator,
         string calldata file,
-        uint8 royaltyForRental,
-        uint8 royaltyForOwnershipTransfer
+        uint8 rentalRoyalty,
+        uint8 ownershipTransferRoyalty
     ) external onlyOwner returns (uint256) {
         _tokenIds.increment();
 
@@ -89,11 +89,11 @@ contract ERC1190Tradable is ERC1190, Ownable {
         super._associateFile(newItemId, file);
         super._setRoyalties(
             newItemId,
-            royaltyForRental,
-            royaltyForOwnershipTransfer
+            rentalRoyalty,
+            ownershipTransferRoyalty
         );
 
-        emit TokenMinted(creator, royaltyForRental, royaltyForOwnershipTransfer, newItemId);
+        emit TokenMinted(creator, rentalRoyalty, ownershipTransferRoyalty, newItemId);
 
         return newItemId;
     }

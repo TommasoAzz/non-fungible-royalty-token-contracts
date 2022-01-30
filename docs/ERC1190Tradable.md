@@ -41,13 +41,13 @@ See {ERC1190-_baseURI}.
 
 
 
-### `mint(address creator, string file, uint8 royaltyForRental, uint8 royaltyForOwnershipTransfer) → uint256` (external)
+### `mint(address creator, string file, uint8 rentalRoyalty, uint8 ownershipTransferRoyalty) → uint256` (external)
 
 
 
 Generates a new token and assigns its ownership and creative
 license to `creator`.
-The royalties are set via `royaltyForRental` and `royaltyForOwnershipTransfer`.
+The royalties are set via `rentalRoyalty` and `ownershipTransferRoyalty`.
 
 ### `setOwnershipLicensePrice(uint256 tokenId, uint256 priceInWei)` (external)
 
