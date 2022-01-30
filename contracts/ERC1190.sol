@@ -682,7 +682,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         virtual
         returns (uint8)
     {
-        require(!_exists(_tokenId), "ERC1190: The token already exists.");
+        require(_exists(_tokenId), "ERC1190: The token does not exist.");
 
         return _royaltiesForRental[_tokenId];
     }
@@ -702,7 +702,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         virtual
         returns (uint8)
     {
-        require(!_exists(_tokenId), "ERC1190: The token already exists.");
+        require(_exists(_tokenId), "ERC1190: The token does not exist.");
 
         return _royaltiesForOwnershipTransfer[_tokenId];
     }
