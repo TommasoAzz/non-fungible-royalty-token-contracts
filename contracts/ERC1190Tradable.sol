@@ -240,7 +240,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
     function transferOwnershipLicense(uint256 tokenId, address to) external {
         require(
             to != address(0),
-            "ERC1190Tradable: Cannot transfer the Ownership license to the zero address."
+            "ERC1190Tradable: Cannot transfer the ownership license to the zero address."
         );
 
         address owner = super.ownerOf(tokenId);
@@ -250,7 +250,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
             "ERC1190Tradable: The sender does not own the ownership license."
         );
 
-        super.transferCreativeLicense(owner, to, tokenId);
+        super.transferOwnershipLicense(owner, to, tokenId);
     }
 
     /**
@@ -309,7 +309,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
     function transferCreativeLicense(uint256 tokenId, address to) external {
         require(
             to != address(0),
-            "ERC1190Tradable: Cannot transfer the Creative license to the zero address."
+            "ERC1190Tradable: Cannot transfer the creative license to the zero address."
         );
 
         address creativeOwner = super.creativeOwnerOf(tokenId);
