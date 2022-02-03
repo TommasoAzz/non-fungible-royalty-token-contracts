@@ -251,11 +251,19 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      */
     function approve(address to, uint256 tokenId) public virtual override {
         address owner = ERC1190.ownerOf(tokenId);
+        address creativeOwner = ERC1190.creativeOwnerOf(tokenId);
         require(to != owner, "ERC1190: Cannot approve the current owner.");
+        require(
+            to != creativeOwner,
+            "ERC1190: Cannot approve the current creative owner."
+        );
 
         require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "ERC1190: The sender is neither the owner of the token nor approved to manage it."
+            _msgSender() == owner ||
+                _msgSender() == creativeOwner ||
+                isApprovedForAll(owner, _msgSender()) ||
+                isApprovedForAll(creativeOwner, _msgSender()),
+            "ERC1190: The sender is neither the (creative) owner of the token nor approved to manage it."
         );
 
         _approve(owner, to, tokenId);
