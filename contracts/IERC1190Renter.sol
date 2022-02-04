@@ -53,7 +53,21 @@ interface IERC1190Renter is IERC165 {
      * - `renter` must exist.
      * - `renter` must have rented `tokenId`.
      */
-    function getRented(uint256 tokenId, address renter)
+    function updateEndRentalDate(uint256 tokenId, address renter)
         external
+        returns (uint256 rentExpirationDateInMillis);
+
+    /**
+     * @dev Returns the expiration date in milliseconds (it is 0 if `renter`
+     * has not rented the token or if the rental has expired).
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     * - `renter` must exist.
+     */
+    function getRentalDate(uint256 tokenId, address renter)
+        external
+        view
         returns (uint256 rentExpirationDateInMillis);
 }

@@ -749,9 +749,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     }
 
     /**
-     * @dev See {IERC1190-getRented}.
+     * @dev See {IERC1190-updateEndRentalDate}.
      */
-    function getRented(uint256 tokenId, address renter)
+    function updateEndRentalDate(uint256 tokenId, address renter)
         public
         virtual
         override
@@ -791,6 +791,26 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             }
             _renterBalances[renter] -= 1;
         }
+
+        return _renters[tokenId][renter];
+    }
+
+    /**
+     * @dev See {IERC1190-getRentalDate}.
+     */
+    function getRentalDate(uint256 tokenId, address renter)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
+        require(_exists(tokenId), "ERC1190: The token does not exist.");
+
+        require(
+            renter != address(0),
+            "ERC1190: renter cannot be the zero address."
+        );
 
         return _renters[tokenId][renter];
     }
