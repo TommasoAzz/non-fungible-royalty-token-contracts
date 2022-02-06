@@ -751,7 +751,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     /**
      * @dev See {IERC1190-updateEndRentalDate}.
      */
-    function updateEndRentalDate(uint256 tokenId, address renter)
+    function updateEndRentalDate(uint256 tokenId, uint256 actualDate, address renter)
         public
         virtual
         override
@@ -771,7 +771,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         uint256 expiration = _renters[tokenId][renter];
 
-        if (expiration < block.timestamp * 1000) {
+        if (expiration < actualDate ) {
             // block.timestamp is the current date and time.
             delete _renters[tokenId][renter];
             bool stop = false;

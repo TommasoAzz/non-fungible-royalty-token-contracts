@@ -180,7 +180,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
      * - `rentExpirationDateInMillis` should correspond to a future date.
      * - the sent money should be enough to cover the renting expenses.
      */
-    function rentAsset(uint256 tokenId, uint256 rentExpirationDateInMillis)
+    function rentAsset(uint256 tokenId, uint256 rentStartingDateInMillis, uint256 rentExpirationDateInMillis)
         external
         payable
     {
@@ -194,8 +194,7 @@ contract ERC1190Tradable is ERC1190, Ownable {
             "ERC1190Tradable: The asset related to this token is not rentable."
         );
 
-        uint256 rentTimeInSeconds = (rentExpirationDateInMillis / 1000) -
-            block.timestamp;
+        uint256 rentTimeInSeconds = (rentExpirationDateInMillis / 1000) - (rentStartingDateInMillis/1000);
 
         require(
             rentTimeInSeconds > 0,
