@@ -84,7 +84,7 @@ Requirements:
 - `tokenId` must exist.
 - `priceInWei` must be greater than 0.
 
-### `rentAsset(uint256 tokenId, uint256 rentExpirationDateInMillis)` (external)
+### `rentAsset(uint256 tokenId, uint256 rentStartingDateInMillis, uint256 rentExpirationDateInMillis)` (external)
 
 
 
@@ -95,6 +95,7 @@ Requirements:
 - `tokenId` must exist.
 - A rental price must have been set via {setRentalPrice}.
 - `rentExpirationDateInMillis` should correspond to a future date.
+- `rentExpirationDateInMillis` - `rentStartingDateInMillis` should be greater than 0.
 - the sent money should be enough to cover the renting expenses.
 
 ### `transferOwnershipLicense(uint256 tokenId, address to)` (external)

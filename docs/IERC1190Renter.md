@@ -30,7 +30,7 @@ Requirements:
 
 Emits a {AssetRented} event.
 
-### `getRented(uint256 tokenId, address renter) → uint256 rentExpirationDateInMillis` (external)
+### `updateEndRentalDate(uint256 tokenId, uint256 currentDate, address renter) → uint256 rentExpirationDateInMillis` (external)
 
 
 
@@ -43,6 +43,18 @@ Requirements:
 - `tokenId` must exist.
 - `renter` must exist.
 - `renter` must have rented `tokenId`.
+
+### `getRentalDate(uint256 tokenId, address renter) → uint256 rentExpirationDateInMillis` (external)
+
+
+
+Returns the expiration date in milliseconds (it is 0 if `renter`
+has not rented the token or if the rental has expired).
+
+Requirements:
+
+- `tokenId` must exist.
+- `renter` must exist.
 
 
 ### `AssetRented(address renter, uint256 tokenId, uint256 rentExpirationDateInMillis)`
