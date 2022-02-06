@@ -851,11 +851,20 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     /**
      * @dev See {IERC1190-updateEndRentalDate}.
      */
+<<<<<<< HEAD
     function updateEndRentalDate(
         uint256 tokenId,
         uint256 actualDate,
         address renter
     ) public virtual override returns (uint256) {
+=======
+    function updateEndRentalDate(uint256 tokenId, uint256 currentDate, address renter)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
+>>>>>>> b38bddd72104914929dee20fa930bf3ca59d43b7
         require(_exists(tokenId), "ERC1190: The token does not exist.");
 
         require(
@@ -870,7 +879,11 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         uint256 expiration = _renters[tokenId][renter];
 
+<<<<<<< HEAD
         if (expiration < actualDate) {
+=======
+        if (expiration < currentDate) {
+>>>>>>> b38bddd72104914929dee20fa930bf3ca59d43b7
             // block.timestamp is the current date and time.
             delete _renters[tokenId][renter];
             bool stop = false;
