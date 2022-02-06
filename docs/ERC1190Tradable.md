@@ -15,25 +15,25 @@ See {ERC1190-constructor}.
 
 
 
-
+Returns the number of available tokens.
 
 ### `ownershipPriceOf(uint256 tokenId) → uint256` (external)
 
 
 
-
+Returns the price of the ownership price license.
 
 ### `creativeOwnershipPriceOf(uint256 tokenId) → uint256` (external)
 
 
 
-
+Returns the price of the creative ownership price license.
 
 ### `rentalPriceOf(uint256 tokenId) → uint256` (external)
 
 
 
-
+Returns the price of renting the token `tokenId` for a second. The amount is in wei.
 
 ### `_baseURI() → string` (internal)
 

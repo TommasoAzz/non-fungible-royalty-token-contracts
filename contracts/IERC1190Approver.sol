@@ -17,14 +17,14 @@ interface IERC1190Approver is IERC165 {
     );
 
     /**
-     * @dev Gives permission to `to` to transfer `tokenId`'s ownership license to another account.
+     * @dev Gives permission to `to` to transfer the ownership license of token `tokenId` to another account.
      * The approval is cleared when the token is transferred.
      *
      * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
      *
      * Requirements:
      *
-     * - The caller must own ownership license of the token or be an approved operator.
+     * - The caller must own the ownership license of the token or be an approved operator.
      * - `tokenId` must exist.
      *
      * Emits an {Approval} event.
@@ -32,7 +32,7 @@ interface IERC1190Approver is IERC165 {
     function approveOwnership(address to, uint256 tokenId) external;
 
     /**
-     * @dev Gives permission to `to` to transfer `tokenId`'s creative ownership to another account.
+     * @dev Gives permission to `to` to transfer the creative ownership license of `tokenId` to another account.
      * The approval is cleared when the token is transferred.
      *
      * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
@@ -111,7 +111,7 @@ interface IERC1190Approver is IERC165 {
         returns (bool);
 
     /**
-     * @dev Returns if the `operator` is allowed to manage all of the assets of `creative owner`.
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
      *
      * See {setApprovalForAll}.
      */

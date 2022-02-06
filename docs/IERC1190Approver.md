@@ -9,14 +9,14 @@
 
 
 
-Gives permission to `to` to transfer `tokenId`'s ownership license to another account.
+Gives permission to `to` to transfer the ownership license of token `tokenId` to another account.
 The approval is cleared when the token is transferred.
 
 Only a single account can be approved at a time, so approving the zero address clears previous approvals.
 
 Requirements:
 
-- The caller must own ownership license of the token or be an approved operator.
+- The caller must own the ownership license of the token or be an approved operator.
 - `tokenId` must exist.
 
 Emits an {Approval} event.
@@ -25,7 +25,7 @@ Emits an {Approval} event.
 
 
 
-Gives permission to `to` to transfer `tokenId`'s creative ownership to another account.
+Gives permission to `to` to transfer the creative ownership license of `tokenId` to another account.
 The approval is cleared when the token is transferred.
 
 Only a single account can be approved at a time, so approving the zero address clears previous approvals.
@@ -99,7 +99,7 @@ See {setApprovalForAll}.
 
 
 
-Returns if the `operator` is allowed to manage all of the assets of `creative owner`.
+Returns if the `operator` is allowed to manage all of the assets of `owner`.
 
 See {setApprovalForAll}.
 

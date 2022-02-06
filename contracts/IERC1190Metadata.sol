@@ -4,7 +4,7 @@ pragma solidity >=0.4.22 <0.9.0;
 import "./IERC1190.sol";
 
 /**
- * @title ERC1190 Non-Fungible Token Standard, optional metadata extension
+ * @title ERC1190 Non-Fungible Token Standard, optional metadata extension.
  */
 interface IERC1190Metadata is IERC1190 {
     /**

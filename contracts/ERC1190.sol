@@ -775,6 +775,10 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         _royaltiesForOwnershipTransfer[tokenId] = ownershipTransferRoyalty;
     }
 
+    /**
+     * @dev Returns the royalty (in an integer range between 0 and 100) the creative owner receives when a
+     * rental of token `tokenId` takes place.
+     */
     function royaltyForRental(uint256 _tokenId)
         external
         view
@@ -784,6 +788,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         return _royaltyForRental(_tokenId);
     }
 
+    /**
+     * @dev See {royaltyForRental}.
+     */
     function _royaltyForRental(uint256 _tokenId)
         internal
         view
@@ -795,6 +802,10 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         return _royaltiesForRental[_tokenId];
     }
 
+    /**
+     * @dev Returns the royalty (in an integer range between 0 and 100) the creative owner receives when the
+     * ownership license of token `tokenId` takes place.
+     */
     function royaltyForOwnershipTransfer(uint256 _tokenId)
         external
         view
@@ -804,6 +815,9 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         return _royaltyForOwnershipTransfer(_tokenId);
     }
 
+    /**
+     * @dev See {royaltyForOwnershipTransfer}.
+     */
     function _royaltyForOwnershipTransfer(uint256 _tokenId)
         internal
         view

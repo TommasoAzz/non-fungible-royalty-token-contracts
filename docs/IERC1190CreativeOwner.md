@@ -33,7 +33,7 @@ Requirements:
 - `from` cannot be the zero address.
 - `to` cannot be the zero address.
 - `tokenId` token must exist and be owned by `from`.
-- If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+- If the caller is not `from`, it must be have been allowed to move this token by either {IERC1190Approver-approveCreativeOwnership} or {IERC1190Approver-setApprovalCreativeOwnershipForAll}.
 - If `to` refers to a smart contract, it must implement {IERC1190CreativeLicenseReceiver-onERC1190CreativeLicenseReceived}, which is called upon a safe transfer.
 
 Emits a {TransferCreativeLicense} event.
@@ -49,7 +49,7 @@ Requirements:
 - `from` cannot be the zero address.
 - `to` cannot be the zero address.
 - `tokenId` token must exist and be owned by `from`.
-- If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+- If the caller is not `from`, it must be have been allowed to move this token by either {IERC1190Approver-approveCreativeOwnership} or {IERC1190Approver-setApprovalCreativeOwnershipForAll}.
 - If `to` refers to a smart contract, it must implement {IERC1190CreativeLicenseReceiver-onERC1190CreativeLicenseReceived}, which is called upon a safe transfer.
 
 Emits a {TransferCreativeLicense} event.
@@ -67,7 +67,7 @@ Requirements:
 - `from` cannot be the zero address.
 - `to` cannot be the zero address.
 - `tokenId` token must be owned by `from`.
-- If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+- If the caller is not `from`, it must be have been allowed to move this token by either {IERC1190Approver-approveCreativeOwnership} or {IERC1190Approver-setApprovalCreativeOwnershipForAll}.
 
 Emits a {TransferCreativeLicense} event.
 

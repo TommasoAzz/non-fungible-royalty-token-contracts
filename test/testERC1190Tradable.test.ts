@@ -96,7 +96,7 @@ contract("ERC1190Tradable", (accounts) => {
                 from: firstAccount
             });
 
-            await erc1190Tradable.approve(secondAccount, (1).toBN(), {
+            await erc1190Tradable.approveOwnership(secondAccount, (1).toBN(), {
                 from: firstAccount
             });
 
@@ -144,13 +144,12 @@ contract("ERC1190Tradable", (accounts) => {
             const currentTimestamp = Date.now();
             const endOfRental = currentTimestamp + 5000; // 5 seconds later
             
-            await erc1190Tradable.methods["rentAsset(uint256,uint256)"].sendTransaction((1).toBN(), endOfRental, {
+            await erc1190Tradable.methods["rentAsset(uint256,uint256,uint256)"].sendTransaction((1).toBN(), currentTimestamp, endOfRental, {
                 from: thirdAccount,
                 value: (10 * 5).toBN()
             });
 
-            const expirationDateStillValid = await erc1190Tradable.getRented.call((1).toBN(), thirdAccount);
-            await erc1190Tradable.getRented.sendTransaction((1).toBN(), thirdAccount);
+            const expirationDateStillValid = await erc1190Tradable.getRentalDate((1).toBN(), thirdAccount);
 
             const balanceOfRenter = await erc1190Tradable.balanceOfRenter(thirdAccount);
 
@@ -160,21 +159,6 @@ contract("ERC1190Tradable", (accounts) => {
             assert.equal(renters.length, 1);
             assert.equal(renters[0], thirdAccount);
             assert.equal(expirationDateStillValid.toNumber(), endOfRental);
-
-            const expirationDateInvalid = await (await setTimeout(5000, async () => {
-                // Generating a random transaction just to update block.timestamp
-                await erc1190Tradable.mint.sendTransaction(firstAccount, "file", (2).toBN(), (88).toBN());
-                // Actual test
-                const expirationDateInvalid = await erc1190Tradable.getRented.call((1).toBN(), thirdAccount);
-                await erc1190Tradable.getRented.sendTransaction((1).toBN(), thirdAccount);
-
-                
-                return expirationDateInvalid;
-            }))();
-
-            console.log("EXPECTING 0 AND IT'S ACTUALLY " + expirationDateInvalid.toNumber());
-
-            assert.equal(expirationDateInvalid.toNumber(), 0);
         });
     });
 })
