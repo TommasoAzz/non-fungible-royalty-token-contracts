@@ -44,17 +44,25 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     // Mapping renter address to token count
     mapping(address => uint256) private _renterBalances;
 
-    // Mapping from token ID to approved address
-    mapping(uint256 => address) private _tokenApprovals;
+    // Mapping from token ID to approved address for ownership license
+    mapping(uint256 => address) private _tokenApprovalsFromOwner;
+
+    // Mapping from owner to operator approvals for ownership license
+    mapping(address => mapping(address => bool))
+        private _operatorApprovalsFromOwner;
+
+    // Mapping from token ID to approved address for creative license
+    mapping(uint256 => address) private _tokenApprovalsFromCreator;
+
+    // Mapping from owner to operator approvals for creative license
+    mapping(address => mapping(address => bool))
+        private _operatorApprovalsFromCreator;
 
     // Mapping from token ID to rotyaltyForRental
     mapping(uint256 => uint8) private _royaltiesForRental;
 
     // Mapping from token ID to rotyaltyForOwnershipTransfer
     mapping(uint256 => uint8) private _royaltiesForOwnershipTransfer;
-
-    // Mapping from owner to operator approvals
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
 
     // Mapping from token to file.
     mapping(uint256 => string) private _files;
@@ -249,24 +257,44 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     /**
      * @dev See {IERC1190-approve}.
      */
-    function approve(address to, uint256 tokenId) public virtual override {
+    function approveOwnership(address to, uint256 tokenId)
+        public
+        virtual
+        override
+    {
         address owner = ERC1190.ownerOf(tokenId);
-        address creativeOwner = ERC1190.creativeOwnerOf(tokenId);
         require(to != owner, "ERC1190: Cannot approve the current owner.");
+
+        require(
+            _msgSender() == owner ||
+                isApprovedOwnershipForAll(owner, _msgSender()) ||
+                "ERC1190: The sender is neither the owner of the token nor approved to manage it."
+        );
+
+        _approveFromOwner(owner, to, tokenId);
+    }
+
+    /**
+     * @dev See {IERC1190-approve}.
+     */
+    function approveCreative(address to, uint256 tokenId)
+        public
+        virtual
+        override
+    {
+        address creativeOwner = ERC1190.creativeOwnerOf(tokenId);
         require(
             to != creativeOwner,
             "ERC1190: Cannot approve the current creative owner."
         );
 
         require(
-            _msgSender() == owner ||
-                _msgSender() == creativeOwner ||
-                isApprovedForAll(owner, _msgSender()) ||
-                isApprovedForAll(creativeOwner, _msgSender()),
-            "ERC1190: The sender is neither the (creative) owner of the token nor approved to manage it."
+            _msgSender() == creativeOwner ||
+                isApprovedCreativeForAll(creativeOwner, _msgSender()),
+            "ERC1190: The sender is neither the creative owner of the token nor approved to manage it."
         );
 
-        _approve(owner, to, tokenId);
+        _approveFromCreator(owner, to, tokenId);
     }
 
     /**
@@ -274,12 +302,27 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      *
      * Emits a {Approval} event.
      */
-    function _approve(
+    function _approveFromOwner(
         address owner,
         address to,
         uint256 tokenId
     ) internal virtual {
-        _tokenApprovals[tokenId] = to;
+        _tokenApprovalsFromOwner[tokenId] = to;
+
+        emit Approval(owner, to, tokenId);
+    }
+
+    /**
+     * @dev Approve `to` to operate on `tokenId`.
+     *
+     * Emits a {Approval} event.
+     */
+    function _approveFromCreator(
+        address owner,
+        address to,
+        uint256 tokenId
+    ) internal virtual {
+        _tokenApprovalsFromCreator[tokenId] = to;
 
         emit Approval(owner, to, tokenId);
     }
@@ -287,7 +330,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     /**
      * @dev See {IERC1190-getApproved}.
      */
-    function getApproved(uint256 tokenId)
+    function getApprovedOwnership(uint256 tokenId)
         public
         view
         virtual
@@ -296,18 +339,44 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
 
-        return _tokenApprovals[tokenId];
+        return _tokenApprovalsFromOwner[tokenId];
+    }
+
+    /**
+     * @dev See {IERC1190-getApproved}.
+     */
+    function getApprovedCreative(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (address)
+    {
+        require(_exists(tokenId), "ERC1190: The token does not exist.");
+
+        return _tokenApprovalsFromCreator[tokenId];
     }
 
     /**
      * @dev See {IERC1190-setApprovalForAll}.
      */
-    function setApprovalForAll(address operator, bool approved)
+    function setApprovalOwnershipForAll(address operator, bool approved)
         public
         virtual
         override
     {
-        _setApprovalForAll(_msgSender(), operator, approved);
+        _setApprovalOwnershipForAll(_msgSender(), operator, approved);
+    }
+
+    /**
+     * @dev See {IERC1190-setApprovalForAll}.
+     */
+    function setApprovalCreativeForAll(address operator, bool approved)
+        public
+        virtual
+        override
+    {
+        _setApprovalCreativeForAll(_msgSender(), operator, approved);
     }
 
     /**
@@ -315,7 +384,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      *
      * Emits a {ApprovalForAll} event.
      */
-    function _setApprovalForAll(
+    function _setApprovalOwnershipForAll(
         address owner,
         address operator,
         bool approved
@@ -325,7 +394,27 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
             "ERC1190: The owner cannot approve theirself."
         );
 
-        _operatorApprovals[owner][operator] = approved;
+        _operatorApprovalsFromOwner[owner][operator] = approved;
+
+        emit ApprovalForAll(owner, operator, approved);
+    }
+
+    /**
+     * @dev Approve `operator` to operate on all of `owner` tokens.
+     *
+     * Emits a {ApprovalForAll} event.
+     */
+    function _setApprovalCreativeForAll(
+        address owner,
+        address operator,
+        bool approved
+    ) internal virtual {
+        require(
+            owner != operator,
+            "ERC1190: The creative owner cannot approve theirself."
+        );
+
+        _operatorApprovalsFromCreator[owner][operator] = approved;
 
         emit ApprovalForAll(owner, operator, approved);
     }
@@ -333,14 +422,27 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     /**
      * @dev See {IERC1190-isApprovedForAll}.
      */
-    function isApprovedForAll(address owner, address operator)
+    function isApprovedOwnershipForAll(address owner, address operator)
         public
         view
         virtual
         override
         returns (bool)
     {
-        return _operatorApprovals[owner][operator];
+        return _operatorApprovalsFromOwner[owner][operator];
+    }
+
+    /**
+     * @dev See {IERC1190-isApprovedForAll}.
+     */
+    function isApprovedCreativeForAll(address owner, address operator)
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
+        return _operatorApprovalsFromCreator[owner][operator];
     }
 
     /**
@@ -350,7 +452,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      *
      * - `tokenId` must exist.
      */
-    function _isApprovedOrOwner(address account, uint256 tokenId)
+    function _isApprovedByOwnerOrOwner(address account, uint256 tokenId)
         internal
         view
         virtual
@@ -360,8 +462,8 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         address owner = ERC1190.ownerOf(tokenId);
 
         return (account == owner ||
-            getApproved(tokenId) == account ||
-            isApprovedForAll(owner, account));
+            getApprovedOwnership(tokenId) == account ||
+            isApprovedOwnershipForAll(owner, account));
     }
 
     /**
@@ -371,18 +473,16 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
      *
      * - `tokenId` must exist.
      */
-    function _isApprovedOrCreativeOwner(address account, uint256 tokenId)
-        internal
-        view
-        virtual
-        returns (bool)
-    {
+    function _isApprovedbyCreatorOrCreativeOwner(
+        address account,
+        uint256 tokenId
+    ) internal view virtual returns (bool) {
         require(_exists(tokenId), "ERC1190: The token does not exist.");
         address creativeOwner = ERC1190.creativeOwnerOf(tokenId);
 
         return (account == creativeOwner ||
-            getApproved(tokenId) == account ||
-            isApprovedForAll(creativeOwner, account));
+            getApprovedCreative(tokenId) == account ||
+            isApprovedCreativeForAll(creativeOwner, account));
     }
 
     /**
@@ -394,8 +494,8 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         uint256 tokenId
     ) public virtual override {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC1190: The sender is neither the owner nor approved to manage the token."
+            _isApprovedbyOwnerOrOwner(_msgSender(), tokenId),
+            "ERC1190: The sender is neither the owner nor approved to manage the Ownership license of the token."
         );
 
         _transferOwnershipLicense(from, to, tokenId);
@@ -420,7 +520,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         );
 
         // Clear approvals from the previous owner
-        _approve(owner, address(0), tokenId);
+        _approveFromOwner(owner, address(0), tokenId);
 
         _ownerBalances[from] -= 1;
         _ownerBalances[to] += 1;
@@ -450,7 +550,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         bytes memory data
     ) public virtual override {
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
+            _isApprovedByOwnerOrOwner(_msgSender(), tokenId),
             "ERC1190: The sender is neither the owner nor approved to manage the token."
         );
 
@@ -483,8 +583,8 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         uint256 tokenId
     ) public virtual override {
         require(
-            _isApprovedOrCreativeOwner(_msgSender(), tokenId),
-            "ERC1190: The sender is neither the creative owner nor approved to manage the token."
+            _isApprovedByCreatorOrCreativeOwner(_msgSender(), tokenId),
+            "ERC1190: The sender is neither the creative owner nor approved to manage the creative license of the token."
         );
 
         _transferCreativeLicense(from, to, tokenId);
@@ -509,7 +609,7 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
         );
 
         // Clear approvals from the previous owner
-        _approve(creativeOwner, address(0), tokenId);
+        _approveFromCreator(creativeOwner, address(0), tokenId);
 
         _creativeOwnerBalances[from] -= 1;
         _creativeOwnerBalances[to] += 1;
@@ -751,12 +851,20 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
     /**
      * @dev See {IERC1190-updateEndRentalDate}.
      */
+<<<<<<< HEAD
+    function updateEndRentalDate(
+        uint256 tokenId,
+        uint256 actualDate,
+        address renter
+    ) public virtual override returns (uint256) {
+=======
     function updateEndRentalDate(uint256 tokenId, uint256 currentDate, address renter)
         public
         virtual
         override
         returns (uint256)
     {
+>>>>>>> b38bddd72104914929dee20fa930bf3ca59d43b7
         require(_exists(tokenId), "ERC1190: The token does not exist.");
 
         require(
@@ -771,7 +879,11 @@ contract ERC1190 is Context, ERC165, IERC1190, IERC1190Metadata {
 
         uint256 expiration = _renters[tokenId][renter];
 
+<<<<<<< HEAD
+        if (expiration < actualDate) {
+=======
         if (expiration < currentDate) {
+>>>>>>> b38bddd72104914929dee20fa930bf3ca59d43b7
             // block.timestamp is the current date and time.
             delete _renters[tokenId][renter];
             bool stop = false;
