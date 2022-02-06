@@ -17,7 +17,7 @@ interface IERC1190Approver is IERC165 {
     );
 
     /**
-     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * @dev Gives permission to `to` to transfer `tokenId`'s ownership license to another account.
      * The approval is cleared when the token is transferred.
      *
      * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
@@ -32,7 +32,7 @@ interface IERC1190Approver is IERC165 {
     function approveOwnership(address to, uint256 tokenId) external;
 
     /**
-     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * @dev Gives permission to `to` to transfer `tokenId`'s creative ownership to another account.
      * The approval is cleared when the token is transferred.
      *
      * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
@@ -44,7 +44,7 @@ interface IERC1190Approver is IERC165 {
      *
      * Emits an {Approval} event.
      */
-    function approveCreative(address to, uint256 tokenId) external;
+    function approveCreativeOwnership(address to, uint256 tokenId) external;
 
     /**
      * @dev Returns the account approved by owner for `tokenId` token.
@@ -65,7 +65,7 @@ interface IERC1190Approver is IERC165 {
      *
      * - `tokenId` must exist.
      */
-    function getApprovedCreative(uint256 tokenId)
+    function getApprovedCreativeOwnership(uint256 tokenId)
         external
         view
         returns (address operator);
@@ -73,8 +73,7 @@ interface IERC1190Approver is IERC165 {
     /**
      * @dev Approve or remove `operator` as an operator for the caller.
      * Operators can call {IERC1190Owner-transferOwnershipLicense},
-     * {IERC1190Owner-safeTransferOwnershipLicense}, {IERC1190CreativeOwner-transferCreativeLicense}
-     * or {IERC1190CreativeOwner-safeTransferCreativeLicense} for any token
+     * {IERC1190Owner-safeTransferOwnershipLicense} for any token
      * owned by the caller.
      *
      * Requirements:
@@ -88,10 +87,9 @@ interface IERC1190Approver is IERC165 {
 
     /**
      * @dev Approve or remove `operator` as an operator for the caller.
-     * Operators can call {IERC1190Owner-transferOwnershipLicense},
-     * {IERC1190Owner-safeTransferOwnershipLicense}, {IERC1190CreativeOwner-transferCreativeLicense}
+     * Operators can call {IERC1190CreativeOwner-transferCreativeLicense}
      * or {IERC1190CreativeOwner-safeTransferCreativeLicense} for any token
-     * owned by the caller.
+     * creative owned by the caller.
      *
      * Requirements:
      *
@@ -99,7 +97,7 @@ interface IERC1190Approver is IERC165 {
      *
      * Emits an {ApprovalForAll} event.
      */
-    function setApprovalCreativeForAll(address operator, bool approved)
+    function setApprovalCreativeOwnershipForAll(address operator, bool approved)
         external;
 
     /**
@@ -113,11 +111,11 @@ interface IERC1190Approver is IERC165 {
         returns (bool);
 
     /**
-     * @dev Returns if the `operator` is allowed to manage all of the assets of `creator`.
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `creative owner`.
      *
      * See {setApprovalForAll}.
      */
-    function isApprovedCreativeForAll(address owner, address operator)
+    function isApprovedCreativeOwnershipForAll(address owner, address operator)
         external
         view
         returns (bool);
