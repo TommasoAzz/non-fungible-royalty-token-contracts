@@ -53,7 +53,7 @@ interface IERC1190Renter is IERC165 {
      * - `renter` must exist.
      * - `renter` must have rented `tokenId`.
      */
-    function updateEndRentalDate(uint256 tokenId, address renter)
+    function updateEndRentalDate(uint256 tokenId, uint256 currentDate, address renter)
         external
         returns (uint256 rentExpirationDateInMillis);
 
